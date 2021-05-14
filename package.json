@@ -1,0 +1,38 @@
+{
+  "name": "dwitter_server",
+  "version": "1.0.0",
+  "description": "Social platform with similar features of twitter.",
+  "main": "src/index.js",
+  "keywords": [
+    "express",
+    "postgres",
+    "redis",
+    "elasticsearch",
+    "SQL",
+    "node"
+  ],
+  "repository": "https://github.com/Devganesh1998/dwitter_server.git",
+  "author": {
+    "name": "Dev Ganesh Pandian",
+    "email": "devganesh91@gmail.com",
+    "url": "https://github.com/devganesh1998"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"    
+  },
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^9.0.2",
+    "express": "^4.17.1",
+    "express-validator": "^6.11.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "cors": "^2.8.5",
+    "nodemon": "^2.0.7",
+    "sequelize-cli": "^6.2.0"
+  }
+}
