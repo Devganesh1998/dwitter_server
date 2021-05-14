@@ -22,7 +22,7 @@
     "start": "node dist/src/index.js",
     "dev": "nodemon",
     "build": "rm -rf dist && tsc",
-    "prestart": "npm run lint && npm run build",
+    "prebuild": "yarn lint",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint --fix . --ext .ts"
   },
