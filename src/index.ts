@@ -1,10 +1,11 @@
-require("dotenv").config();
+import dotenv from 'dotenv';
+dotenv.config();
 
-const express = require("express");
-const cookieParser = require("cookie-parser");
-const morgan = require("morgan");
-const db = require("../pg-database/models");
-const { isDev, ALLOWED_ORIGINS, PORT, isProd } = require('./config');
+import express from 'express';
+import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
+import db from '../pg-database/models';
+import { isDev, isProd, ALLOWED_ORIGINS, PORT } from './config';
 
 const app = express();
 app.use(cookieParser());
@@ -13,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 if (isDev) {
-  const cors = require("cors");
+  const { default: cors } = await import('cors');
   app.use(cors());
 } else {
   app.use(function (req, res, next) {
@@ -25,7 +26,7 @@ if (isDev) {
       "Access-Control-Allow-Headers",
       "Origin, X-Requested-With, Content-Type, Accept, cookie"
     );
-    res.header("Access-Control-Allow-Credentials", true);
+    res.header("Access-Control-Allow-Credentials", 'true');
     next();
   });
 }
