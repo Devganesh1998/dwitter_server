@@ -4,7 +4,7 @@ dotenv.config();
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
-import db from '../pg-database/models';
+import { db } from '../pg-database/models';
 import { isDev, isProd, ALLOWED_ORIGINS, PORT } from './config';
 
 const app = express();
@@ -39,7 +39,7 @@ app.get("/info", (req, res) => {
   let retries = 5;
   while (retries) {
     try {
-      await db.sequelize.sync();
+      await db.sync();
       app.listen(PORT, () => {
         console.log(`listening on: http://localhost:${PORT}`);
       });
