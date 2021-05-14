@@ -15,6 +15,7 @@
         "paths": {
             "*": ["node_modules/*"]
         },
+        "types": ["node"],
         "downlevelIteration": true /* Provide full support for iterables in 'for-of', spread, and destructuring when targeting 'ES5' or 'ES3'. */,
         "strict": true /* Enable all strict type-checking options. */,
         "strictNullChecks": true /* Enable strict null checks. */,
