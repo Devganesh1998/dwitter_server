@@ -9,7 +9,8 @@
     "redis",
     "elasticsearch",
     "SQL",
-    "node"
+    "node",
+    "typescript"
   ],
   "repository": "https://github.com/Devganesh1998/dwitter_server.git",
   "author": {
@@ -19,7 +20,9 @@
   },
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "build": "tsc",
+    "prestart": "npm run build"
   },
   "license": "MIT",
   "dependencies": {
@@ -36,6 +39,7 @@
   "devDependencies": {
     "cors": "^2.8.5",
     "nodemon": "^2.0.7",
-    "sequelize-cli": "^6.2.0"
+    "sequelize-cli": "^6.2.0",
+    "typescript": "^4.2.4"
   }
 }
