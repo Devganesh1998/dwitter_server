@@ -1,0 +1,8 @@
+const path = require('path')
+
+module.exports = {
+  config: path.resolve('./pg-database/config', 'config.js'),
+  'models-path': path.resolve('./pg-database/models'),
+  'seeders-path': path.resolve('./pg-database/seeders'),
+  'migrations-path': path.resolve('./pg-database/migrations'),
+}

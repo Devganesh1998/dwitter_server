@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
-// const db = require("../database/models");
+const db = require("../pg-database/models");
 const { isDev, ALLOWED_ORIGINS, PORT, isProd } = require('./config');
 
 const app = express();
@@ -38,7 +38,7 @@ app.get("/info", (req, res) => {
   let retries = 5;
   while (retries) {
     try {
-      // await db.sequelize.sync();
+      await db.sequelize.sync();
       app.listen(PORT, () => {
         console.log(`listening on: http://localhost:${PORT}`);
       });
