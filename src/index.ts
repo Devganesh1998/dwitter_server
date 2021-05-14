@@ -13,29 +13,28 @@ app.use(morgan(isProd ? 'combined' : 'dev'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-if (isDev) {
-  const { default: cors } = await import('cors');
-  app.use(cors());
-} else {
-  app.use(function (req, res, next) {
-    const origin = req.headers.origin;
-    if (origin && ALLOWED_ORIGINS.indexOf(origin) > -1) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-    }
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, cookie"
-    );
-    res.header("Access-Control-Allow-Credentials", 'true');
-    next();
-  });
-}
-
-app.get("/info", (req, res) => {
+app.get("/info", (_req, res) => {
   res.send("Welcome to Dwitter server");
 });
 
 (async () => {
+  if (isDev) {
+    const { default: cors } = await import('cors');
+    app.use(cors());
+  } else {
+    app.use(function (req, res, next) {
+      const origin = req.headers.origin;
+      if (origin && ALLOWED_ORIGINS.indexOf(origin) > -1) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+      }
+      res.header(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, cookie"
+      );
+      res.header("Access-Control-Allow-Credentials", 'true');
+      next();
+    });
+  }
   let retries = 5;
   while (retries) {
     try {
