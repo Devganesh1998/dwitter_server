@@ -1,5 +1,5 @@
 import { Model, Optional } from 'sequelize';
-import { ACCOUNT_STATUS, ACCOUNT_TYPE, USER_TYPE } from '../../../src/types';
+import { ACCOUNT_STATUS, ACCOUNT_TYPE, USER_TYPE } from '../../../types';
 
 interface UserAttributes {
 	userId: string;
