@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as SequelizeStatic from 'sequelize';
 import { Sequelize, DataTypes } from 'sequelize';
-import { UserInstance, UserCreationAttributes } from './interfaces/product';
+import { UserInstance, UserCreationAttributes } from './interfaces/User';
 import configFac, { ConfigInterface } from '../config/config';
 
 const env = process.env.NODE_ENV || 'development';
