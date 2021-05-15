@@ -1,4 +1,5 @@
 import { Model, Optional } from 'sequelize';
+import { ACCOUNT_STATUS, ACCOUNT_TYPE, USER_TYPE } from '../../../src/types';
 
 interface UserAttributes {
 	userId: string;
@@ -6,10 +7,10 @@ interface UserAttributes {
 	phoneNo?: number;
 	countryCode?: string;
 	email?: string;
-	accountType: string;
-	accountStatus: string;
+	accountType: ACCOUNT_TYPE;
+	accountStatus: ACCOUNT_STATUS;
 	isVerified: boolean;
-	userType: string;
+	userType: USER_TYPE;
 	password?: string;
 }
 

@@ -1,22 +1,6 @@
 import { Sequelize, DataTypes, ModelDefined } from 'sequelize';
 import { UserInstance, UserCreationAttributes } from './interfaces/User';
-
-const ACCOUNT_TYPE = {
-	TRAIL: 'TRAIL',
-	PAID: 'PAID',
-	ADMIN: 'ADMIN',
-};
-
-const ACCOUNT_STATUS = {
-	ENABLED: 'ENABLED',
-	DISABLED: 'DISABLED',
-	SUSPENDED: 'SUSPENDED',
-};
-
-const USER_TYPE = {
-	INTERNAL: 'INTERNAL',
-	EXTERNAL: 'EXTERNAL',
-};
+import { ACCOUNT_STATUS, ACCOUNT_TYPE, USER_TYPE } from '../../src/config';
 
 export default function UserModel(
 	sequelize: Sequelize,
