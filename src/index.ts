@@ -37,7 +37,7 @@ app.get('/info', (_req, res) => {
 	let retries = 5;
 	while (retries) {
 		try {
-			await db.sync();
+			await db.sync({ alter: true });
 			app.listen(PORT, () => {
 				console.log(`listening on: http://localhost:${PORT}`);
 			});
