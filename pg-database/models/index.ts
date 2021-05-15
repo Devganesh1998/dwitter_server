@@ -1,10 +1,11 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as SequelizeStatic from 'sequelize';
 import { Sequelize, DataTypes } from 'sequelize';
 import { UserInstance, UserCreationAttributes } from './interfaces/product';
-import configFac, { configInterface } from '../config/config';
+import configFac, { ConfigInterface } from '../config/config';
 
 const env = process.env.NODE_ENV || 'development';
 export interface SequelizeModels {
@@ -13,20 +14,20 @@ export interface SequelizeModels {
 
 class Database {
 	private _basename: string;
+
 	private _models: SequelizeModels;
+
 	private _sequelize: Sequelize;
 
 	constructor() {
 		this._basename = path.basename(module.filename);
-		const config = configFac[env as keyof configInterface];
+		const config = configFac[env as keyof ConfigInterface];
 
 		this._sequelize = new SequelizeStatic.Sequelize(config.url, config);
 		this._models = {} as any;
 
 		fs.readdirSync(__dirname)
-			.filter((file: string) => {
-				return file !== this._basename && file !== 'interfaces';
-			})
+			.filter((file: string) => file !== this._basename && file !== 'interfaces')
 			.forEach((file: string) => {
 				(async () => {
 					const { default: modelCons } = await import(path.join(__dirname, file));

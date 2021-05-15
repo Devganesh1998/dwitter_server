@@ -1,14 +1,14 @@
-type configType = {
+type ConfigType = {
 	database: string;
 	url: string;
 };
 
-export interface configInterface {
-	development: configType;
-	production: configType;
+export interface ConfigInterface {
+	development: ConfigType;
+	production: ConfigType;
 }
 
-const config: configInterface = {
+const config: ConfigInterface = {
 	development: {
 		database: 'dwitter',
 		url: process.env.DEV_DATABASE_URL || '',
