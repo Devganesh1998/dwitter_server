@@ -1,8 +1,16 @@
-const path = require('path')
+require('dotenv').config();
+const path = require('path');
+
+const isJS = process.env.IS_JS;
+const modelsPath = !isJS ? path.resolve('./pg-database/models') : path.resolve('./dist/pg-database/models');
+const seedersPath = !isJS ? path.resolve('./pg-database/seeders') : path.resolve('./dist/pg-database/seeders');
+const migrationPath = !isJS ? path.resolve('./pg-database/migrations') : path.resolve('./dist/pg-database/migrations');
+console.log({ seedersPath, modelsPath, migrationPath });
 
 module.exports = {
-  config: path.resolve('./pg-database/config', 'config.js'),
-  'models-path': path.resolve('./pg-database/models'),
-  'seeders-path': path.resolve('./pg-database/seeders'),
-  'migrations-path': path.resolve('./pg-database/migrations'),
+  env: process.env.NODE_ENV,
+  config: path.resolve('./dist/pg-database/config', 'config.js'),
+  'models-path': modelsPath,
+  'seeders-path': seedersPath,
+  'migrations-path': migrationPath,
 }
