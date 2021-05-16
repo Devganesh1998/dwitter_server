@@ -28,10 +28,10 @@
     "seq-mi": "IS_JS=true sequelize db:migrate",
     "seq-mi-un": "IS_JS=true sequelize db:migrate:undo",
     "seq-mi-una": "IS_JS=true sequelize db:migrate:undo:all",
-    "seq-mi-stat": "IS_JS=true sequelize db:migrate:status",
-    "seq-mi-gene": "sequelize migration:generate --name",
-    "seq-se-gene": "sequelize seed:generate --name",
-    "seq-mo-gene": "sequelize model:generate --name"
+    "seq-mi-ls": "IS_JS=true sequelize db:migrate:status",
+    "seq-mi-ge": "sequelize migration:generate --name",
+    "seq-se-ge": "sequelize seed:generate --name",
+    "seq-mo-ge": "sequelize model:generate --name"
   },
   "license": "MIT",
   "dependencies": {
