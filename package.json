@@ -24,7 +24,11 @@
     "build": "rm -rf dist && tsc",
     "prebuild": "yarn lint",
     "lint": "eslint . --ext .ts",
-    "lint-fix": "eslint --fix . --ext .ts"
+    "lint-fix": "eslint --fix . --ext .ts",
+    "seq-mi-stat": "IS_JS=true sequelize db:migrate:status",
+    "seq-mi-gene": "sequelize migration:generate --name",
+    "seq-se-gene": "sequelize seed:generate --name",
+    "seq-mo-gene": "sequelize model:generate --name"
   },
   "license": "MIT",
   "dependencies": {
