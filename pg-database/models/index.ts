@@ -5,7 +5,8 @@ import * as path from 'path';
 import * as SequelizeStatic from 'sequelize';
 import { Sequelize, DataTypes } from 'sequelize';
 import { UserInstance, UserCreationAttributes } from './interfaces/User';
-import configFac, { ConfigInterface } from '../config/config';
+import configFac from '../config/config';
+import { ConfigInterface } from '../../types';
 
 const env = process.env.NODE_ENV || 'development';
 export interface SequelizeModels {
