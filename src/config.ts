@@ -35,3 +35,13 @@ export const USER_TYPE: {
 	INTERNAL: 'INTERNAL',
 	EXTERNAL: 'EXTERNAL',
 };
+
+export const GENDER: {
+	MALE: types.GENDER;
+	FEMALE: types.GENDER;
+	OTHERS: types.GENDER;
+} = {
+	MALE: 'MALE',
+	FEMALE: 'FEMALE',
+	OTHERS: 'OTHERS',
+};
