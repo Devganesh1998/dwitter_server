@@ -20,11 +20,11 @@ export default function UserModel(
 				type: dataTypes.STRING,
 			},
 			phoneNo: {
-				type: dataTypes.INTEGER,
+				type: dataTypes.BIGINT({ unsigned: true }),
 				unique: true,
 			},
 			age: {
-				type: dataTypes.INTEGER,
+				type: dataTypes.INTEGER({ unsigned: true }),
 			},
 			followersCount: {
 				type: dataTypes.BIGINT({ unsigned: true }),
@@ -59,6 +59,7 @@ export default function UserModel(
 			userName: {
 				unique: true,
 				type: dataTypes.STRING,
+				allowNull: false,
 			},
 			gender: {
 				type: dataTypes.ENUM(...Object.keys(GENDER)),

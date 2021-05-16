@@ -37,11 +37,11 @@ module.exports = {
 				type: Sequelize.STRING,
 			},
 			phoneNo: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.BIGINT({ unsigned: true }),
 				unique: true,
 			},
 			age: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.INTEGER({ unsigned: true }),
 			},
 			followersCount: {
 				type: Sequelize.BIGINT({ unsigned: true }),
@@ -76,6 +76,7 @@ module.exports = {
 			userName: {
 				unique: true,
 				type: Sequelize.STRING,
+				allowNull: false,
 			},
 			gender: {
 				type: Sequelize.ENUM(...Object.keys(GENDER)),
@@ -107,6 +108,16 @@ module.exports = {
 			isVerified: {
 				type: Sequelize.BOOLEAN,
 				defaultValue: false,
+			},
+			createdAt: {
+				allowNull: false,
+				type: Sequelize.DATE,
+				defaultValue: new Date(),
+			},
+			updatedAt: {
+				allowNull: false,
+				type: Sequelize.DATE,
+				defaultValue: new Date(),
 			},
 		});
 	},
