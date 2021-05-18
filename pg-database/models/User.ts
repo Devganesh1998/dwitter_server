@@ -107,7 +107,6 @@ export default function UserModel(
 				},
 			],
 			timestamps: true,
-			freezeTableName: true,
 		}
 	);
 
