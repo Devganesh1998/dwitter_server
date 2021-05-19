@@ -4,13 +4,13 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as SequelizeStatic from 'sequelize';
 import { Sequelize, DataTypes } from 'sequelize';
-import { UserInstance, UserCreationAttributes } from './interfaces/User';
+import { User } from './interfaces/User';
 import configFac from '../config/config';
 import { ConfigInterface } from '../../types';
 
 const env = process.env.NODE_ENV || 'development';
 export interface SequelizeModels {
-	Product: SequelizeStatic.Model<UserInstance, UserCreationAttributes>;
+	User: User;
 }
 
 class Database {

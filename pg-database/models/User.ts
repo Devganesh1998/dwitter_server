@@ -1,13 +1,9 @@
-import { Sequelize, DataTypes, ModelDefined } from 'sequelize';
-import { UserInstance, UserCreationAttributes } from './interfaces/User';
+import { Sequelize, DataTypes } from 'sequelize';
+import { User } from './interfaces/User';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE, GENDER, USER_TYPE } from '../../src/config';
 
-export default function UserModel(
-	sequelize: Sequelize,
-	dataTypes: typeof DataTypes
-): ModelDefined<UserInstance, UserCreationAttributes> {
-	const User: ModelDefined<UserInstance, UserCreationAttributes> = sequelize.define(
-		'User',
+export default function UserModel(sequelize: Sequelize, dataTypes: typeof DataTypes): any {
+	const UserIns = User.init(
 		{
 			userId: {
 				primaryKey: true,
@@ -106,9 +102,10 @@ export default function UserModel(
 					],
 				},
 			],
+			sequelize,
 			timestamps: true,
 		}
 	);
 
-	return User;
+	return UserIns;
 }
