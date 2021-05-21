@@ -4,19 +4,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as SequelizeStatic from 'sequelize';
 import { Sequelize, DataTypes } from 'sequelize';
-import { User } from './interfaces/User';
+import { Models } from './interfaces/common';
 import configFac from '../config/config';
 import { ConfigInterface } from '../../types';
 
 const env = process.env.NODE_ENV || 'development';
-export interface SequelizeModels {
-	User: User;
-}
 
 class Database {
 	private _basename: string;
 
-	private _models: SequelizeModels;
+	private _models: Models;
 
 	private _sequelize: Sequelize;
 
@@ -27,21 +24,25 @@ class Database {
 		this._sequelize = new SequelizeStatic.Sequelize(config.url, config);
 		this._models = {} as any;
 
-		fs.readdirSync(__dirname)
+		const promises = fs
+			.readdirSync(__dirname)
 			.filter((file: string) => file !== this._basename && file !== 'interfaces')
-			.forEach((file: string) => {
-				(async () => {
-					const { default: modelCons } = await import(path.join(__dirname, file));
-					const model = modelCons(this._sequelize, DataTypes);
-					this._models[(model as any).name] = model;
-				})();
+			.map(async (file: string) => {
+				const { default: modelCons } = await import(path.join(__dirname, file));
+				const model = modelCons(this._sequelize, DataTypes);
+				this._models[(model as any).name] = model;
+				return true;
 			});
-
-		Object.keys(this._models).forEach((modelName: string) => {
-			if (typeof this._models[modelName].associate === 'function') {
-				this._models[modelName].associate(this._models);
-			}
-		});
+		Promise.all(promises)
+			.then(() => {
+				Object.keys(this._models).forEach((modelName: string) => {
+					if (typeof this._models[modelName].associate === 'function') {
+						this._models[modelName].associate(this._models);
+					}
+				});
+			})
+			// eslint-disable-next-line no-console
+			.catch((err) => console.error(err));
 	}
 
 	getModels() {
