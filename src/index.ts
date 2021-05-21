@@ -40,7 +40,7 @@ app.get('/info', (_req, res) => {
 	while (retries) {
 		try {
 			// eslint-disable-next-line no-await-in-loop
-			await db.sync();
+			await db.sync({ force: true });
 			app.listen(PORT, () => {
 				console.log(`listening on: http://localhost:${PORT}`);
 			});
