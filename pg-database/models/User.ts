@@ -17,7 +17,6 @@ export default function UserModel(
 			userId: {
 				primaryKey: true,
 				type: dataTypes.UUID,
-				allowNull: false,
 				validate: { isUUID: 4 },
 				defaultValue: dataTypes.UUIDV4,
 			},

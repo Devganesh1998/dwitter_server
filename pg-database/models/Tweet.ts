@@ -16,7 +16,6 @@ export default function UserModel(
 			tweetId: {
 				primaryKey: true,
 				type: dataTypes.UUID,
-				allowNull: false,
 				validate: { isUUID: 4 },
 				defaultValue: dataTypes.UUIDV4,
 			},
