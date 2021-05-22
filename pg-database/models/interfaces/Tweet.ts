@@ -1,6 +1,6 @@
 import { Model, Optional } from 'sequelize';
 
-interface TweetAttributes {
+export interface TweetAttributes {
 	tweetId: string;
 	tweet: string;
 	likes: number;
