@@ -22,7 +22,7 @@ export default function UserModel(
 			},
 			tweet: {
 				allowNull: false,
-				type: dataTypes.STRING,
+				type: dataTypes.TEXT({ length: 'medium' }),
 			},
 			likes: {
 				type: dataTypes.BIGINT,

@@ -12,7 +12,7 @@ module.exports = {
 			},
 			tweet: {
 				allowNull: false,
-				type: Sequelize.STRING,
+				type: Sequelize.TEXT({ length: 'medium' }),
 			},
 			likes: {
 				type: Sequelize.BIGINT,
