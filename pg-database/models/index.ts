@@ -24,25 +24,19 @@ class Database {
 		this._sequelize = new SequelizeStatic.Sequelize(config.url, config);
 		this._models = {} as any;
 
-		const promises = fs
-			.readdirSync(__dirname)
+		fs.readdirSync(__dirname)
 			.filter((file: string) => file !== this._basename && file !== 'interfaces')
-			.map(async (file: string) => {
-				const { default: modelCons } = await import(path.join(__dirname, file));
+			.forEach((file: string) => {
+				// eslint-disable-next-line global-require,import/no-dynamic-require,@typescript-eslint/no-var-requires
+				const { default: modelCons } = require(path.join(__dirname, file));
 				const model = modelCons(this._sequelize, DataTypes);
 				this._models[(model as any).name] = model;
-				return true;
 			});
-		Promise.all(promises)
-			.then(() => {
-				Object.keys(this._models).forEach((modelName: string) => {
-					if (typeof this._models[modelName].associate === 'function') {
-						this._models[modelName].associate(this._models);
-					}
-				});
-			})
-			// eslint-disable-next-line no-console
-			.catch((err) => console.error(err));
+		Object.keys(this._models).forEach((modelName: string) => {
+			if (typeof this._models[modelName].associate === 'function') {
+				this._models[modelName].associate(this._models);
+			}
+		});
 	}
 
 	getModels() {

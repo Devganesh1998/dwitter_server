@@ -42,7 +42,7 @@ app.use('/', appRoutes);
 	while (retries) {
 		try {
 			// eslint-disable-next-line no-await-in-loop
-			await db.sync({ force: true });
+			await db.sync();
 			app.listen(PORT, () => {
 				console.log(`listening on: http://localhost:${PORT}`);
 			});
