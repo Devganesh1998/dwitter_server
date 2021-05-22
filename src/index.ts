@@ -1,10 +1,10 @@
 import dotenv from 'dotenv';
-
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { db } from '../pg-database/models';
 import { isDev, isProd, ALLOWED_ORIGINS, PORT } from './config';
+import appRoutes from './routes';
 
 dotenv.config();
 
@@ -17,6 +17,8 @@ app.use(express.json());
 app.get('/info', (_req, res) => {
 	res.send('Welcome to Dwitter server');
 });
+app.use('/', appRoutes);
+
 (async () => {
 	if (isDev) {
 		// eslint-disable-next-line import/no-extraneous-dependencies
