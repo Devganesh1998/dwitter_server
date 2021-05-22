@@ -24,6 +24,10 @@ export default function UserModel(
 				allowNull: false,
 				type: dataTypes.STRING,
 			},
+			likes: {
+				type: dataTypes.BIGINT,
+				defaultValue: 0,
+			},
 		},
 		{
 			tableName: 'tweets',

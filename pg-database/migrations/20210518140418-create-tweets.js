@@ -3,19 +3,20 @@ module.exports = {
 	// @ts-ignore
 	up: async (queryInterface, Sequelize) => {
 		await queryInterface.createTable('tweets', {
-      tweetId: {
+			tweetId: {
 				primaryKey: true,
 				allowNull: false,
 				validate: { isUUID: 4 },
 				defaultValue: Sequelize.UUIDV4,
-        type: Sequelize.INTEGER,
+				type: Sequelize.INTEGER,
 			},
 			tweet: {
-        allowNull: false,
+				allowNull: false,
 				type: Sequelize.STRING,
 			},
 			likes: {
-				type: Sequelize.INTEGER,
+				type: Sequelize.BIGINT,
+				defaultValue: 0,
 			},
 			createdAt: {
 				allowNull: false,
