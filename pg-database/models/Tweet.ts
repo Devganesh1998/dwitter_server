@@ -1,16 +1,12 @@
-import { Sequelize, DataTypes, Model, ModelCtor } from 'sequelize';
+import { Sequelize, DataTypes } from 'sequelize';
 import { TweetAttributes, TweetCreationAttributes } from './interfaces/Tweet';
-import { Models } from './interfaces/common';
+import { Models, CustomModel } from './interfaces/common';
 
 export default function UserModel(
 	sequelize: Sequelize,
 	dataTypes: typeof DataTypes
-): ModelCtor<Model<TweetAttributes, TweetCreationAttributes>> & {
-	associate?: (models: Models) => void;
-} {
-	const Tweet: ModelCtor<Model<TweetAttributes, TweetCreationAttributes>> & {
-		associate?: (models: Models) => void;
-	} = sequelize.define(
+): CustomModel<TweetAttributes, TweetCreationAttributes> {
+	const Tweet: CustomModel<TweetAttributes, TweetCreationAttributes> = sequelize.define(
 		'Tweet',
 		{
 			tweetId: {

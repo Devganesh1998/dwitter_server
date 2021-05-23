@@ -1,17 +1,13 @@
-import { Sequelize, DataTypes, Model, ModelCtor } from 'sequelize';
+import { Sequelize, DataTypes } from 'sequelize';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE, GENDER, USER_TYPE } from '../../src/config';
-import { Models } from './interfaces/common';
+import { CustomModel } from './interfaces/common';
 import { UserAttributes, UserCreationAttributes } from './interfaces/User';
 
 export default function UserModel(
 	sequelize: Sequelize,
 	dataTypes: typeof DataTypes
-): ModelCtor<Model<UserAttributes, UserCreationAttributes>> & {
-	associate?: (models: Models) => void;
-} {
-	const UserIns: ModelCtor<Model<UserAttributes, UserCreationAttributes>> & {
-		associate?: (models: Models) => void;
-	} = sequelize.define(
+): CustomModel<UserAttributes, UserCreationAttributes> {
+	const UserIns: CustomModel<UserAttributes, UserCreationAttributes> = sequelize.define(
 		'User',
 		{
 			userId: {
