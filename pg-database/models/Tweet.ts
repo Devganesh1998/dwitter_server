@@ -2,7 +2,7 @@ import { Sequelize, DataTypes } from 'sequelize';
 import { TweetAttributes, TweetCreationAttributes } from './interfaces/Tweet';
 import { Models, CustomModel } from './interfaces/common';
 
-export default function UserModel(
+export default function TweetModel(
 	sequelize: Sequelize,
 	dataTypes: typeof DataTypes
 ): CustomModel<TweetAttributes, TweetCreationAttributes> {

@@ -1,4 +1,4 @@
-import { Model, Optional } from 'sequelize';
+import { Optional } from 'sequelize';
 
 export interface TweetAttributes {
 	tweetId: string;
@@ -8,10 +8,3 @@ export interface TweetAttributes {
 }
 
 export type TweetCreationAttributes = Optional<TweetAttributes, 'tweetId'>;
-
-export interface TweetInstance
-	extends Model<TweetAttributes, TweetCreationAttributes>,
-		TweetAttributes {
-	createdAt: Date;
-	updatedAt: Date;
-}
