@@ -29,7 +29,6 @@ module.exports = {
 			userId: {
 				primaryKey: true,
 				type: Sequelize.UUID,
-				allowNull: false,
 				validate: { isUUID: 4 },
 				defaultValue: Sequelize.UUIDV4,
 			},
