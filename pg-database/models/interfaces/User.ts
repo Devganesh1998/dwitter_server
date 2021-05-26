@@ -1,4 +1,4 @@
-import { Optional } from 'sequelize';
+import { Model, Optional } from 'sequelize';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE, GENDER, USER_TYPE } from '../../../types';
 
 export interface UserAttributes {
@@ -24,3 +24,10 @@ export interface UserAttributes {
 }
 
 export type UserCreationAttributes = Optional<UserAttributes, 'userId'>;
+
+export interface UserInstance
+	extends Model<UserAttributes, UserCreationAttributes>,
+		UserAttributes {
+	createdAt: Date;
+	updatedAt: Date;
+}
