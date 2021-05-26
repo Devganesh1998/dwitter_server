@@ -2,6 +2,7 @@ import { Sequelize, DataTypes } from 'sequelize';
 import {
 	NestedCommentAttributes,
 	NestedCommentCreationAttributes,
+	NestedCommentInstance,
 } from './interfaces/NestedComment';
 import { Models, CustomModel } from './interfaces/common';
 
@@ -10,7 +11,7 @@ export default function CommentModel(
 	dataTypes: typeof DataTypes
 ): CustomModel<NestedCommentAttributes, NestedCommentCreationAttributes> {
 	const NestedComment: CustomModel<NestedCommentAttributes, NestedCommentCreationAttributes> =
-		sequelize.define(
+		sequelize.define<NestedCommentInstance>(
 			'NestedComment',
 			{
 				nestedCommentId: {
