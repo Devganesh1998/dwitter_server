@@ -1,4 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
+import bcrypt from 'bcrypt';
+import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import AuthService from '../services/auth.service';
 
 class AuthController {
@@ -21,18 +23,49 @@ class AuthController {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async register(req: Request, res: Response, _next: NextFunction) {
 		try {
-			const userData = req.body;
-			const results = await this.service.createUser({
+			const {
+				followersCount,
+				followingCount,
+				userId,
+				...userData
+			}: UserAttributes & { password: string } = req.body;
+			const { email, password } = userData;
+			const hashedPassword = await bcrypt.hash(password, 10);
+			const result = (await this.service.createUser({
 				...userData,
+				password: hashedPassword,
 				accountType: 'TRAIL',
 				accountStatus: 'ENABLED',
 				isVerified: false,
-				userType: 'INTERNAL',
+				userType: email && email.includes('@dwitter.com') ? 'INTERNAL' : 'EXTERNAL',
+			})) as UserAttributes;
+			res.send({
+				message: 'Registration successfull',
+				user: {
+					email: result.email,
+					phoneNo: result.phoneNo,
+					isVerified: result.isVerified,
+					userName: result.userName,
+				},
 			});
-			res.send({ message: 'Registration successfull', results });
 		} catch (error) {
 			console.error(error);
-			res.status(500).json({ error_msg: 'Internal server error' });
+			const { errors = [], message } = error;
+			let isErrorHandled = false;
+			if (message === 'Validation error') {
+				errors.forEach(({ type, path }: { type: string; path: string }) => {
+					if (type === 'unique violation') {
+						isErrorHandled = true;
+						return res
+							.status(400)
+							.json({ message: `An account is already present with given ${path}` });
+					}
+					return false;
+				});
+			}
+			if (isErrorHandled === false) {
+				res.status(500).json({ error_msg: 'Internal server error' });
+			}
 		}
 	}
 }

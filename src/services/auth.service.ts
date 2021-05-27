@@ -25,28 +25,27 @@ export default class AuthService {
 		return user;
 	}
 
-	static async createUser(userData: UserAttributes): Promise<Record<string, any>> {
-		const {
-			userId,
-			name,
-			userName,
-			age,
-			gender,
-			followersCount,
-			followingCount,
-			dateOfBirth,
-			phoneNo,
-			countryCode,
-			description,
-			email,
-			accountType,
-			accountStatus,
-			isVerified,
-			userType,
-			password,
-			profileImgUrl,
-			posterImgUrl,
-		} = userData;
+	static async createUser({
+		userId,
+		name,
+		userName,
+		age,
+		gender,
+		followersCount,
+		followingCount,
+		dateOfBirth,
+		phoneNo,
+		countryCode,
+		description,
+		email,
+		accountType,
+		accountStatus,
+		isVerified,
+		userType,
+		password,
+		profileImgUrl,
+		posterImgUrl,
+	}: Omit<UserAttributes, 'userId'> & { userId?: string }): Promise<Record<string, any>> {
 		const results = await models.User.create({
 			userId,
 			name,
