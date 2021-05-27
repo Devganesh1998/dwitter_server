@@ -3,6 +3,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import { db } from '../pg-database/models';
+import getRedisClient from '../redis-cache';
 import { isDev, isProd, ALLOWED_ORIGINS, PORT } from './config';
 import appRoutes from './routes';
 
@@ -41,6 +42,10 @@ app.use('/', appRoutes);
 	let retries = 5;
 	while (retries) {
 		try {
+			const redis = getRedisClient();
+			redis.on('error', (error: any) => {
+				console.log(`An error occurred with redis:${error}`);
+			});
 			// eslint-disable-next-line no-await-in-loop
 			await db.sync();
 			app.listen(PORT, () => {
