@@ -24,4 +24,5 @@ export interface ConfigInterface {
 export interface CustomRedisClient extends RedisClient {
 	setAsync: (key: string, value: string) => Promise<unknown>;
 	getAsync: (key: string) => Promise<string | null>;
+	llenAsync: (key: string) => Promise<number>;
 }
