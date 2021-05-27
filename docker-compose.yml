@@ -23,12 +23,14 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - db
+      - cache
     ports:
       - "4500:4500"
     environment:
       - DEV_DATABASE_URL=postgres://postgres:postgres@db:5432/dwitter
       - PORT=4500
       - NODE_ENV=development
+      - REDIS_HOST=cache
     volumes:
       - .:/app
     command: npm run dev
