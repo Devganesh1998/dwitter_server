@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import { RedisClient } from 'redis';
 import { Dialect } from 'sequelize';
 
 export type ACCOUNT_TYPE = 'TRAIL' | 'PAID' | 'ADMIN';
@@ -18,4 +19,9 @@ export type ConfigType = {
 export interface ConfigInterface {
 	development: ConfigType;
 	production: ConfigType;
+}
+
+export interface CustomRedisClient extends RedisClient {
+	setAsync: (key: string, value: string) => Promise<unknown>;
+	getAsync: (key: string) => Promise<string | null>;
 }
