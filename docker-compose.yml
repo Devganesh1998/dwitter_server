@@ -10,6 +10,13 @@ services:
       - ./pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+  cache:
+    image: redis
+    volumes:
+      - ./redisdata:/data
+    ports:
+      - '6374:6379'
+    entrypoint: redis-server --appendonly yes
   server:
     build:
       context: ./

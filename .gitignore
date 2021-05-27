@@ -1,4 +1,8 @@
 node_modules
+# storageData
 pgdata
+redisdata
+
+# build
 dist
 .env
