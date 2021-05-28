@@ -2,12 +2,17 @@ import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import AuthService from '../services/auth.service';
+import getRedisClient from '../../redis-cache';
+import { CustomRedisClient } from '../../types';
 
 class AuthController {
 	private service: typeof AuthService;
 
+	private cache: CustomRedisClient;
+
 	constructor(service: typeof AuthService) {
 		this.service = service;
+		this.cache = getRedisClient();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
@@ -29,6 +34,7 @@ class AuthController {
 				userId,
 				...userData
 			}: UserAttributes & { password: string } = req.body;
+			// const clientIp = req.ip || req.ips;
 			const { email, password } = userData;
 			const hashedPassword = await bcrypt.hash(password, 10);
 			const result = (await this.service.createUser({
@@ -39,13 +45,50 @@ class AuthController {
 				isVerified: false,
 				userType: email && email.includes('@dwitter.com') ? 'INTERNAL' : 'EXTERNAL',
 			})) as UserAttributes;
+			const {
+				userId: resultUserId,
+				email: resultEmail,
+				phoneNo,
+				isVerified,
+				userName,
+				accountStatus,
+				accountType,
+				userType,
+			} = result;
+			const sessionId = await this.cache.llenAsync(resultUserId);
+			const hashedSessionId = await bcrypt.hash(`${resultUserId}:${sessionId}`, 2);
+			res.cookie('at', hashedSessionId, {
+				httpOnly: true,
+				sameSite: 'strict',
+				// 6 hrs in milliseconds
+				maxAge: 6 * 60 * 60 * 1000,
+			});
+			await this.cache.hsetAsync([
+				hashedSessionId,
+				'userId',
+				resultUserId,
+				'email',
+				resultEmail || '',
+				'phoneNo',
+				phoneNo?.toString() || '',
+				'isVerified',
+				`${isVerified}`,
+				'userName',
+				userName,
+				'accountStatus',
+				accountStatus,
+				'accountType',
+				accountType,
+				'userType',
+				userType,
+			]);
 			res.send({
 				message: 'Registration successfull',
 				user: {
-					email: result.email,
-					phoneNo: result.phoneNo,
-					isVerified: result.isVerified,
-					userName: result.userName,
+					email: resultEmail,
+					phoneNo,
+					isVerified,
+					userName,
 				},
 			});
 		} catch (error) {
@@ -64,7 +107,9 @@ class AuthController {
 				});
 			}
 			if (isErrorHandled === false) {
-				res.status(500).json({ error_msg: 'Internal server error' });
+				res.status(500).json({
+					error_msg: 'Internal server error, please try again, after some time.',
+				});
 			}
 		}
 	}
