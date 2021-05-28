@@ -26,4 +26,6 @@ export interface CustomRedisClient extends RedisClient {
 	getAsync: (key: string) => Promise<string | null>;
 	llenAsync: (key: string) => Promise<number>;
 	hsetAsync: (arg1: [string, ...string[]]) => Promise<number>;
+	rpushAsync: (arg1: [string, ...string[]]) => Promise<number>;
+	expireAsync: (arg1: string, arg2: number) => Promise<number>;
 }
