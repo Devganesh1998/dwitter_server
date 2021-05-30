@@ -4,6 +4,7 @@ import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import AuthService from '../services/auth.service';
 import getRedisClient from '../../redis-cache';
 import { CustomRedisClient } from '../../types';
+import { SESSION_EXPIRE_IN_MS, SESSION_EXPIRE_IN_S } from '../config';
 
 class AuthController {
 	private service: typeof AuthService;
@@ -61,26 +62,33 @@ class AuthController {
 				httpOnly: true,
 				sameSite: 'strict',
 				// 6 hrs in milliseconds
-				maxAge: 6 * 60 * 60 * 1000,
+				maxAge: SESSION_EXPIRE_IN_MS,
 			});
-			await this.cache.hsetAsync([
-				hashedSessionId,
-				'userId',
-				resultUserId,
-				'email',
-				resultEmail || '',
-				'phoneNo',
-				phoneNo?.toString() || '',
-				'isVerified',
-				`${isVerified}`,
-				'userName',
-				userName,
-				'accountStatus',
-				accountStatus,
-				'accountType',
-				accountType,
-				'userType',
-				userType,
+			await Promise.all([
+				this.cache.hsetAsync([
+					hashedSessionId,
+					'userId',
+					resultUserId,
+					'email',
+					resultEmail || '',
+					'phoneNo',
+					phoneNo?.toString() || '',
+					'isVerified',
+					`${isVerified}`,
+					'userName',
+					userName,
+					'accountStatus',
+					accountStatus,
+					'accountType',
+					accountType,
+					'userType',
+					userType,
+				]),
+				this.cache.rpushAsync([resultUserId, hashedSessionId]),
+			]);
+			await Promise.all([
+				this.cache.expireAsync(resultUserId, SESSION_EXPIRE_IN_S),
+				this.cache.expireAsync(hashedSessionId, SESSION_EXPIRE_IN_S),
 			]);
 			res.send({
 				message: 'Registration successfull',
