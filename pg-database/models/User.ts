@@ -21,18 +21,18 @@ export default function UserModel(
 					type: dataTypes.STRING,
 				},
 				phoneNo: {
-					type: dataTypes.BIGINT({ unsigned: true }),
+					type: dataTypes.BIGINT,
 					unique: true,
 				},
 				age: {
-					type: dataTypes.INTEGER({ unsigned: true }),
+					type: dataTypes.INTEGER,
 				},
 				followersCount: {
-					type: dataTypes.BIGINT({ unsigned: true }),
+					type: dataTypes.BIGINT,
 					defaultValue: 0,
 				},
 				followingCount: {
-					type: dataTypes.BIGINT({ unsigned: true }),
+					type: dataTypes.BIGINT,
 					defaultValue: 0,
 				},
 				dateOfBirth: {
@@ -42,17 +42,17 @@ export default function UserModel(
 					type: dataTypes.STRING(20),
 				},
 				description: {
-					type: dataTypes.TEXT({ length: 'medium' }),
+					type: dataTypes.TEXT,
 					defaultValue: '',
 				},
 				profileImgUrl: {
-					type: dataTypes.TEXT({ length: 'medium' }),
+					type: dataTypes.TEXT,
 					validate: { isUrl: true },
 					defaultValue:
 						'https://i.pinimg.com/originals/51/f6/fb/51f6fb256629fc755b8870c801092942.png',
 				},
 				posterImgUrl: {
-					type: dataTypes.TEXT({ length: 'medium' }),
+					type: dataTypes.TEXT,
 					validate: { isUrl: true },
 					defaultValue:
 						'https://fastcode.space/wp-content/uploads/2019/11/Starry-Glamour-Dream-Earth-Beautiful-Purple-Blue-Gradient-Background-Poster-Illustration-0.jpg',
@@ -69,6 +69,9 @@ export default function UserModel(
 					unique: true,
 					type: dataTypes.STRING,
 					validate: { isEmail: true },
+				},
+				clientIp: {
+					type: dataTypes.STRING,
 				},
 				accountType: {
 					allowNull: false,
@@ -87,7 +90,7 @@ export default function UserModel(
 				},
 				password: {
 					allowNull: false,
-					type: dataTypes.TEXT({ length: 'medium' }),
+					type: dataTypes.TEXT,
 				},
 				isVerified: {
 					type: dataTypes.BOOLEAN,

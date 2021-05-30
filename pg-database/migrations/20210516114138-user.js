@@ -36,19 +36,22 @@ module.exports = {
 				type: Sequelize.STRING,
 			},
 			phoneNo: {
-				type: Sequelize.BIGINT({ unsigned: true }),
+				type: Sequelize.BIGINT,
 				unique: true,
 			},
 			age: {
-				type: Sequelize.INTEGER({ unsigned: true }),
+				type: Sequelize.INTEGER,
 			},
 			followersCount: {
-				type: Sequelize.BIGINT({ unsigned: true }),
+				type: Sequelize.BIGINT,
 				defaultValue: 0,
 			},
 			followingCount: {
-				type: Sequelize.BIGINT({ unsigned: true }),
+				type: Sequelize.BIGINT,
 				defaultValue: 0,
+			},
+			clientIp: {
+				type: dataTypes.STRING,
 			},
 			dateOfBirth: {
 				type: Sequelize.DATEONLY,
@@ -57,17 +60,17 @@ module.exports = {
 				type: Sequelize.STRING(20),
 			},
 			description: {
-				type: Sequelize.TEXT({ length: 'medium' }),
+				type: Sequelize.TEXT,
 				defaultValue: '',
 			},
 			profileImgUrl: {
-				type: Sequelize.TEXT({ length: 'medium' }),
+				type: Sequelize.TEXT,
 				validate: { isUrl: true },
 				defaultValue:
 					'https://i.pinimg.com/originals/51/f6/fb/51f6fb256629fc755b8870c801092942.png',
 			},
 			posterImgUrl: {
-				type: Sequelize.TEXT({ length: 'medium' }),
+				type: Sequelize.TEXT,
 				validate: { isUrl: true },
 				defaultValue:
 					'https://fastcode.space/wp-content/uploads/2019/11/Starry-Glamour-Dream-Earth-Beautiful-Purple-Blue-Gradient-Background-Poster-Illustration-0.jpg',
@@ -102,7 +105,7 @@ module.exports = {
 			},
 			password: {
 				allowNull: false,
-				type: Sequelize.TEXT({ length: 'medium' }),
+				type: Sequelize.TEXT,
 			},
 			isVerified: {
 				type: Sequelize.BOOLEAN,

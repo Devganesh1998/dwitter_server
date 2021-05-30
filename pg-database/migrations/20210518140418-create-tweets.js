@@ -11,7 +11,7 @@ module.exports = {
 			},
 			tweet: {
 				allowNull: false,
-				type: Sequelize.TEXT({ length: 'medium' }),
+				type: Sequelize.TEXT,
 			},
 			likes: {
 				type: Sequelize.BIGINT,
