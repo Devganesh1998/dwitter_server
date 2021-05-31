@@ -4,6 +4,7 @@ import { ControllerArgs } from '../../types';
 import { GENDER } from '../config';
 import AuthController from '../controller/auth.controller';
 import enumValidator from '../customMiddlewares/enumValidator';
+import verifyValidations from '../customMiddlewares/verifyValidations';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.post(
 		),
 		body('password').exists({ checkFalsy: true }).bail().isString().bail().trim(),
 	],
+	verifyValidations,
 	(...args: ControllerArgs) => AuthController.login(...args)
 );
 router.post(
@@ -46,6 +48,7 @@ router.post(
 		body('profileImgUrl').optional({ checkFalsy: true }).isString().isURL().trim(),
 		body('posterImgUrl').optional({ checkFalsy: true }).isString().isURL().trim(),
 	],
+	verifyValidations,
 	(...args: ControllerArgs) => AuthController.register(...args)
 );
 router.get('/logout', (...args: ControllerArgs) => AuthController.register(...args));
