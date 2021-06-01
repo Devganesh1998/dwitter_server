@@ -17,7 +17,7 @@ const verifyValidations = (req: Request, res: Response, next: NextFunction): voi
 	if (!errors.isEmpty()) {
 		res.status(400).json({
 			errors: errors.mapped(),
-			errormsg: 'Please send the required fields',
+			error_msg: 'Please send the required fields',
 			'Required fields': [...Object.keys(validFields), ...validationFailedFields],
 		});
 		return;

@@ -36,7 +36,7 @@ class AuthController {
 				);
 				if (isKeyPresent === 1) {
 					return res.status(400).json({
-						errormsg:
+						error_msg:
 							'Current session is active, please logout to switch to another account',
 					});
 				}
@@ -113,7 +113,7 @@ class AuthController {
 				});
 			}
 			return res.status(400).json({
-				errormsg: 'Incorrect password, please verify the credentials',
+				error_msg: 'Incorrect password, please verify the credentials',
 			});
 		} catch (error) {
 			console.error(error);
@@ -209,9 +209,9 @@ class AuthController {
 				errors.forEach(({ type, path }: { type: string; path: string }) => {
 					if (type === 'unique violation') {
 						isErrorHandled = true;
-						return res
-							.status(400)
-							.json({ message: `An account is already present with given ${path}` });
+						return res.status(400).json({
+							error_msg: `An account is already present with given ${path}`,
+						});
 					}
 					return false;
 				});
@@ -223,6 +223,14 @@ class AuthController {
 			}
 		}
 	}
+
+	// async logout(req: Request, res: Response, _next: NextFunction) {
+	// 	try {
+	// 	} catch (error) {
+	// 		console.error(error);
+	// 		res.status(500).json({ error_msg: 'Internal server error' });
+	// 	}
+	// }
 }
 
 export default new AuthController(AuthService);
