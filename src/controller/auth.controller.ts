@@ -16,10 +16,105 @@ class AuthController {
 		this.cache = getRedisClient();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars,class-methods-use-this
-	async login(_req: Request, res: Response, _next: NextFunction) {
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async login(req: Request, res: Response, _next: NextFunction) {
 		try {
-			res.send({ message: 'Login successfull' });
+			const {
+				userName,
+				email,
+				phoneNo,
+				password,
+			}: { userName: string; email: string; phoneNo: number | string; password: string } =
+				req.body;
+			const clientIp = req.ip || req.ips[0];
+			const userAgent = req.get('user-agent') || '';
+			const hashedSessionIdFromCookie: string = (req.cookies && req.cookies.at) || '';
+			if (hashedSessionIdFromCookie) {
+				const isKeyPresent = await this.cache.hexistsAsync(
+					hashedSessionIdFromCookie,
+					'userId'
+				);
+				if (isKeyPresent === 1) {
+					return res.status(400).json({
+						errormsg:
+							'Current session is active, please logout to switch to another account',
+					});
+				}
+			}
+			let userData;
+			if (userName) {
+				userData = await this.service.getUserFromUserName(userName);
+			} else if (email) {
+				userData = await this.service.getUserFromEmail(email);
+			} else if (phoneNo) {
+				userData = await this.service.getUserFromPhoneNo(parseInt(`${phoneNo}`, 10));
+			}
+			const {
+				password: passwordFromDb,
+				userId,
+				email: resultEmail,
+				phoneNo: resultPhoneNo,
+				isVerified,
+				accountStatus,
+				accountType,
+				userType,
+				userName: resultUserName,
+			} = userData as UserAttributes & {
+				password: string;
+			};
+			const isPasswordMatches = await bcrypt.compare(password, passwordFromDb);
+			if (isPasswordMatches) {
+				const sessionId = await this.cache.llenAsync(userId);
+				const hashedSessionId = await bcrypt.hash(`${userId}:${sessionId}`, 2);
+				res.cookie('at', hashedSessionId, {
+					httpOnly: true,
+					sameSite: 'strict',
+					// 6 hrs in milliseconds
+					maxAge: SESSION_EXPIRE_IN_MS,
+				});
+				await Promise.all([
+					this.cache.hsetAsync([
+						hashedSessionId,
+						'userId',
+						userId,
+						'email',
+						resultEmail || '',
+						'phoneNo',
+						resultPhoneNo?.toString() || '',
+						'isVerified',
+						`${isVerified}`,
+						'userName',
+						resultUserName,
+						'accountStatus',
+						accountStatus,
+						'accountType',
+						accountType,
+						'userType',
+						userType,
+						'latestClientIp',
+						clientIp,
+						'latestUserAgent',
+						userAgent,
+					]),
+					this.cache.rpushAsync([userId, hashedSessionId]),
+				]);
+				await Promise.all([
+					this.cache.expireAsync(userId, SESSION_EXPIRE_IN_S),
+					this.cache.expireAsync(hashedSessionId, SESSION_EXPIRE_IN_S),
+				]);
+				return res.send({
+					message: 'Login successfull',
+					user: {
+						email: resultEmail,
+						phoneNo: resultPhoneNo,
+						isVerified,
+						userName: resultUserName,
+					},
+				});
+			}
+			return res.status(400).json({
+				errormsg: 'Incorrect password, please verify the credentials',
+			});
 		} catch (error) {
 			console.error(error);
 			res.status(500).json({ error_msg: 'Internal server error' });
