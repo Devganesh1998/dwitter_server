@@ -19,7 +19,8 @@ export interface UserAttributes {
 	isVerified: boolean;
 	userType: USER_TYPE;
 	password?: string;
-	clientIp?: string;
+	latestClientIp?: string;
+	latestUserAgent?: string;
 	profileImgUrl: string;
 	posterImgUrl: string;
 }

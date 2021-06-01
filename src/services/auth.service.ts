@@ -14,7 +14,7 @@ export default class AuthService {
 		return user;
 	}
 
-	static async getUserFromEmail(email: string): Promise<Record<string, any>> {
+	static async getUserPassFromEmail(email: string): Promise<Record<string, any>> {
 		const [user] =
 			(await db.query('SELECT "password" from users WHERE email = :email', {
 				replacements: {

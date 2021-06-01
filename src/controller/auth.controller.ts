@@ -36,12 +36,14 @@ class AuthController {
 				...userData
 			}: UserAttributes & { password: string } = req.body;
 			const clientIp = req.ip || req.ips[0];
+			const userAgent = req.get('user-agent') || '';
 			const { email, password } = userData;
 			const hashedPassword = await bcrypt.hash(password, 10);
 			const result = (await this.service.createUser({
 				...userData,
 				password: hashedPassword,
-				clientIp,
+				latestClientIp: clientIp,
+				latestUserAgent: userAgent,
 				accountType: 'TRAIL',
 				accountStatus: 'ENABLED',
 				isVerified: false,
@@ -84,8 +86,10 @@ class AuthController {
 					accountType,
 					'userType',
 					userType,
-					'clientIp',
+					'latestClientIp',
 					clientIp,
+					'latestUserAgent',
+					userAgent,
 				]),
 				this.cache.rpushAsync([resultUserId, hashedSessionId]),
 			]);

@@ -70,7 +70,10 @@ export default function UserModel(
 					type: dataTypes.STRING,
 					validate: { isEmail: true },
 				},
-				clientIp: {
+				latestClientIp: {
+					type: dataTypes.STRING,
+				},
+				latestUserAgent: {
 					type: dataTypes.STRING,
 				},
 				accountType: {
