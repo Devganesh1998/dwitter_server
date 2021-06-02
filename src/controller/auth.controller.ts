@@ -74,7 +74,7 @@ class AuthController {
 				});
 				await Promise.all([
 					this.cache.hsetAsync([
-						hashedSessionId,
+						`session:${hashedSessionId}`,
 						'userId',
 						userId,
 						'email',
@@ -95,12 +95,14 @@ class AuthController {
 						clientIp,
 						'latestUserAgent',
 						userAgent,
+						'sessionStartedAt',
+						new Date().toString(),
 					]),
-					this.cache.rpushAsync([userId, hashedSessionId]),
+					this.cache.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]),
 				]);
 				await Promise.all([
-					this.cache.expireAsync(userId, SESSION_EXPIRE_IN_S),
-					this.cache.expireAsync(hashedSessionId, SESSION_EXPIRE_IN_S),
+					this.cache.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
+					this.cache.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
 				]);
 				return res.send({
 					message: 'Login successfull',
@@ -164,7 +166,7 @@ class AuthController {
 			});
 			await Promise.all([
 				this.cache.hsetAsync([
-					hashedSessionId,
+					`session:${hashedSessionId}`,
 					'userId',
 					resultUserId,
 					'email',
@@ -185,12 +187,17 @@ class AuthController {
 					clientIp,
 					'latestUserAgent',
 					userAgent,
+					'sessionStartedAt',
+					new Date().toString(),
 				]),
-				this.cache.rpushAsync([resultUserId, hashedSessionId]),
+				this.cache.saddAsync([
+					`userSessions:${resultUserId}`,
+					`session:${hashedSessionId}`,
+				]),
 			]);
 			await Promise.all([
-				this.cache.expireAsync(resultUserId, SESSION_EXPIRE_IN_S),
-				this.cache.expireAsync(hashedSessionId, SESSION_EXPIRE_IN_S),
+				this.cache.expireAsync(`userSessions:${resultUserId}`, SESSION_EXPIRE_IN_S),
+				this.cache.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
 			]);
 			res.send({
 				message: 'Registration successfull',
