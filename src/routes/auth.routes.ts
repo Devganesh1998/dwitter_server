@@ -51,6 +51,6 @@ router.post(
 	verifyValidations,
 	(...args: ControllerArgs) => AuthController.register(...args)
 );
-router.get('/logout', (...args: ControllerArgs) => AuthController.register(...args));
+router.get('/logout', (...args: ControllerArgs) => AuthController.logout(...args));
 
 export default router;

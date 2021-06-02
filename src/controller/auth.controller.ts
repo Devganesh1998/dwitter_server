@@ -16,7 +16,6 @@ class AuthController {
 		this.cache = getRedisClient();
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async login(req: Request, res: Response, _next: NextFunction) {
 		try {
 			const {
@@ -122,7 +121,6 @@ class AuthController {
 		}
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async register(req: Request, res: Response, _next: NextFunction) {
 		try {
 			const {
@@ -229,13 +227,43 @@ class AuthController {
 		}
 	}
 
-	// async logout(req: Request, res: Response, _next: NextFunction) {
-	// 	try {
-	// 	} catch (error) {
-	// 		console.error(error);
-	// 		res.status(500).json({ error_msg: 'Internal server error' });
-	// 	}
-	// }
+	async logout(req: Request, res: Response, _next: NextFunction) {
+		try {
+			const hashedSessionIdFromCookie: string = (req.cookies && req.cookies.at) || '';
+			if (hashedSessionIdFromCookie) {
+				const userId = await this.cache.hgetAsync(
+					`session:${hashedSessionIdFromCookie}`,
+					'userId'
+				);
+				if (userId) {
+					const [sessionDelResult, userSessionMapDelResult] = await Promise.all([
+						this.cache.delAsync([`session:${hashedSessionIdFromCookie}`]),
+						this.cache.sremAsync([
+							`userSessions:${userId}`,
+							`session:${hashedSessionIdFromCookie}`,
+						]),
+					]);
+					if (sessionDelResult === 0 && userSessionMapDelResult) {
+						return res.status(400).json({
+							error_msg: 'Session expired already, please login',
+						});
+					}
+					if (userSessionMapDelResult === 0) {
+						return res.status(400).json({
+							error_msg: 'Session was removed already, please login',
+						});
+					}
+					return res.send({ message: 'Logout successfull' });
+				}
+			}
+			return res.status(400).json({
+				error_msg: 'Session not found, please login',
+			});
+		} catch (error) {
+			console.error(error);
+			res.status(500).json({ error_msg: 'Internal server error' });
+		}
+	}
 }
 
 export default new AuthController(AuthService);
