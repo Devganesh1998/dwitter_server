@@ -31,4 +31,5 @@ export interface CustomRedisClient extends RedisClient {
 	hexistsAsync: (arg1: string, arg2: string) => Promise<number>;
 	saddAsync: (arg1: [string, ...string[]]) => Promise<number>;
 	sremAsync: (arg1: [string, ...string[]]) => Promise<number>;
+	delAsync: (arg1: [string, ...string[]]) => Promise<number>;
 }
