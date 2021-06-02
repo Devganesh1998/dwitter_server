@@ -30,7 +30,7 @@ class AuthController {
 			const hashedSessionIdFromCookie: string = (req.cookies && req.cookies.at) || '';
 			if (hashedSessionIdFromCookie) {
 				const isKeyPresent = await this.cache.hexistsAsync(
-					hashedSessionIdFromCookie,
+					`session:${hashedSessionIdFromCookie}`,
 					'userId'
 				);
 				if (isKeyPresent === 1) {
