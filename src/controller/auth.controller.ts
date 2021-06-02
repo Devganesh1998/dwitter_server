@@ -41,7 +41,7 @@ class AuthController {
 					});
 				}
 			}
-			let userData;
+			let userData = {};
 			if (userName) {
 				userData = await this.service.getUserFromUserName(userName);
 			} else if (email) {
@@ -64,8 +64,7 @@ class AuthController {
 			};
 			const isPasswordMatches = await bcrypt.compare(password, passwordFromDb);
 			if (isPasswordMatches) {
-				const sessionId = await this.cache.llenAsync(userId);
-				const hashedSessionId = await bcrypt.hash(`${userId}:${sessionId}`, 2);
+				const hashedSessionId = await bcrypt.hash(`${userId}:${Date.now()}`, 2);
 				res.cookie('at', hashedSessionId, {
 					httpOnly: true,
 					sameSite: 'strict',
@@ -156,8 +155,7 @@ class AuthController {
 				accountType,
 				userType,
 			} = result;
-			const sessionId = await this.cache.llenAsync(resultUserId);
-			const hashedSessionId = await bcrypt.hash(`${resultUserId}:${sessionId}`, 2);
+			const hashedSessionId = await bcrypt.hash(`${resultUserId}:${Date.now()}`, 2);
 			res.cookie('at', hashedSessionId, {
 				httpOnly: true,
 				sameSite: 'strict',
