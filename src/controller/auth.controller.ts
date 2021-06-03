@@ -41,12 +41,25 @@ class AuthController {
 				}
 			}
 			let userData = {};
+			let userIdentifier = '';
+			let userIdentifierFieldName = '';
 			if (userName) {
 				userData = await this.service.getUserFromUserName(userName);
+				userIdentifier = userName;
+				userIdentifierFieldName = 'userName';
 			} else if (email) {
 				userData = await this.service.getUserFromEmail(email);
+				userIdentifier = email;
+				userIdentifierFieldName = 'email';
 			} else if (phoneNo) {
 				userData = await this.service.getUserFromPhoneNo(parseInt(`${phoneNo}`, 10));
+				userIdentifier = `${phoneNo}`;
+				userIdentifierFieldName = 'phoneNo';
+			}
+			if (!userData) {
+				return res.status(400).json({
+					error_msg: `Cannot find an account with given ${userIdentifierFieldName} - ${userIdentifier}, please verify the credentials`,
+				});
 			}
 			const {
 				password: passwordFromDb,

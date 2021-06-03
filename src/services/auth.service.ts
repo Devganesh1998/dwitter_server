@@ -20,7 +20,7 @@ export default class AuthService {
 	static async getUserFromEmail(email: string): Promise<Record<string, any>> {
 		const [user] =
 			(await db.query(
-				'SELECT "password", "userId", "email", "phoneNo", "isVerified", "userName", "accountStatus", "accountType", "userType" from users WHERE email = :email',
+				'SELECT "password", "userId", "email", "phoneNo", "isVerified", "userName", "accountStatus", "accountType", "userType" from users WHERE "email" = :email',
 				{
 					replacements: {
 						email,
@@ -34,7 +34,7 @@ export default class AuthService {
 	static async getUserFromUserName(userName: string): Promise<Record<string, any>> {
 		const [user] =
 			(await db.query(
-				'SELECT "password", "userId", "email", "phoneNo", "isVerified", "userName", "accountStatus", "accountType", "userType" from users WHERE userName = :userName',
+				'SELECT "password", "userId", "email", "phoneNo", "isVerified", "userName", "accountStatus", "accountType", "userType" from users WHERE "userName" = :userName',
 				{
 					replacements: {
 						userName,
