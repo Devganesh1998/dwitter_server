@@ -1,7 +1,6 @@
 node_modules
 # storageData
-pgdata
-redisdata
+docker-vol-data
 
 # build
 dist
