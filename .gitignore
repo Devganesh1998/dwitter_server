@@ -1,6 +1,4 @@
 node_modules
-# storageData
-docker-vol-data
 
 # build
 dist

@@ -8,14 +8,14 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_DB: dwitter
     volumes:
-      - ./docker-vol-data/pg-data:/var/lib/postgresql/data
+      - pg-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
   cache:
     image: redis
     container_name: cache
     volumes:
-      - ./docker-vol-data/redis-data:/data
+      - redis-data:/data
     ports:
       - '6374:6379'
     entrypoint: redis-server --appendonly yes
@@ -38,7 +38,25 @@ services:
       KAFKA_ADVERTISED_HOST_NAME: localhost
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
-      - ./docker-vol-data/kf-data:/var/lib/kafka/data
+      - kafka-data:/var/lib/kafka/data
+  elastic:
+    image: elasticsearch:7.13.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+  kibana:
+    image: kibana:7.13.1
+    container_name: kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elastic
+    environment:
+      ELASTICSEARCH_URL: elastic:9200
   server:
     container_name: server
     build:
@@ -48,6 +66,7 @@ services:
       - db
       - cache
       - kafka
+      - elastic
     ports:
       - "4500:4500"
     environment:
@@ -58,3 +77,9 @@ services:
     volumes:
       - .:/app
     command: npm run dev
+
+volumes:
+  esdata:
+  pg-data:
+  redis-data:
+  kafka-data:
