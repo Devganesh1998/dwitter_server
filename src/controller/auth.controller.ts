@@ -1,19 +1,35 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
+import { Kafka, Producer } from 'kafkajs';
 import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import AuthService from '../services/auth.service';
 import getRedisClient from '../../redis-cache';
 import { CustomRedisClient } from '../../types';
 import { SESSION_EXPIRE_IN_MS, SESSION_EXPIRE_IN_S } from '../config';
 
+const kafkaClient = new Kafka({
+	clientId: 'dwitter-server',
+	brokers: ['kafka:9092'],
+});
+
+const kfProducer = kafkaClient.producer();
+
 class AuthController {
 	private service: typeof AuthService;
+
+	private producer: Producer;
 
 	private cache: CustomRedisClient;
 
 	constructor(service: typeof AuthService) {
 		this.service = service;
 		this.cache = getRedisClient();
+		this.producer = kfProducer;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const contextHere = this;
+		(async function initializeKfConnection() {
+			await contextHere.producer.connect();
+		})();
 	}
 
 	async login(req: Request, res: Response, _next: NextFunction) {
@@ -83,6 +99,20 @@ class AuthController {
 					// 6 hrs in milliseconds
 					maxAge: SESSION_EXPIRE_IN_MS,
 				});
+				const userDataTokf = {
+					hashedSessionId,
+					userId,
+					email: resultEmail || '',
+					phoneNo: resultPhoneNo?.toString() || '',
+					isVerified,
+					userName: resultUserName,
+					accountStatus,
+					accountType,
+					userType,
+					latestClientIp: clientIp,
+					latestUserAgent: userAgent,
+					sessionStartedAt: new Date().toString(),
+				};
 				await Promise.all([
 					this.cache.hsetAsync([
 						`session:${hashedSessionId}`,
@@ -110,6 +140,10 @@ class AuthController {
 						new Date().toString(),
 					]),
 					this.cache.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]),
+					this.producer.send({
+						topic: 'user-login',
+						messages: [{ value: userDataTokf.toString() }],
+					}),
 				]);
 				await Promise.all([
 					this.cache.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
@@ -173,6 +207,20 @@ class AuthController {
 				// 6 hrs in milliseconds
 				maxAge: SESSION_EXPIRE_IN_MS,
 			});
+			const userDataTokf = {
+				hashedSessionId,
+				userId,
+				email: resultEmail || '',
+				phoneNo: phoneNo?.toString() || '',
+				isVerified,
+				userName,
+				accountStatus,
+				accountType,
+				userType,
+				latestClientIp: clientIp,
+				latestUserAgent: userAgent,
+				sessionStartedAt: new Date().toString(),
+			};
 			await Promise.all([
 				this.cache.hsetAsync([
 					`session:${hashedSessionId}`,
@@ -203,6 +251,10 @@ class AuthController {
 					`userSessions:${resultUserId}`,
 					`session:${hashedSessionId}`,
 				]),
+				this.producer.send({
+					topic: 'user-register',
+					messages: [{ value: userDataTokf.toString() }],
+				}),
 			]);
 			await Promise.all([
 				this.cache.expireAsync(`userSessions:${resultUserId}`, SESSION_EXPIRE_IN_S),
