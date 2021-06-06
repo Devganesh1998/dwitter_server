@@ -40,23 +40,35 @@ services:
     volumes:
       - kafka-data:/var/lib/kafka/data
   elastic:
-    image: elasticsearch:7.13.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
     container_name: elasticsearch
-    environment:
-      - discovery.type=single-node
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - es-data:/usr/share/elasticsearch/data
+      # - ./elasticsearch-config.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
       - 9200:9200
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - node.name=elastic
+    networks:
+      - es-net
   kibana:
-    image: kibana:7.13.1
+    image: docker.elastic.co/kibana/kibana:7.13.1
     container_name: kibana
     ports:
       - 5601:5601
     depends_on:
       - elastic
+    networks:
+      - es-net
+    volumes: 
+      - kib-data:/usr/share/kibana/data
+      # - ./kibana-config.yml:/usr/share/kibana/config/kibana.yml
     environment:
-      ELASTICSEARCH_URL: elastic:9200
+      - ELASTICSEARCH_HOSTS=http://elastic:9200
   server:
     container_name: server
     build:
@@ -79,7 +91,12 @@ services:
     command: npm run dev
 
 volumes:
-  esdata:
+  es-data:
+  kib-data:
   pg-data:
   redis-data:
   kafka-data:
+
+networks:
+  es-net:
+    driver: bridge
