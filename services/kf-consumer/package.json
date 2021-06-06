@@ -1,0 +1,17 @@
+{
+  "name": "kf-consumer",
+  "version": "1.0.0",
+  "description": "Kafka consumer",
+  "main": "src/index.ts",
+  "author": {
+    "name": "Dev Ganesh Pandian",
+    "email": "devganesh91@gmail.com",
+    "url": "https://github.com/devganesh1998"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "dependencies": {}
+}
