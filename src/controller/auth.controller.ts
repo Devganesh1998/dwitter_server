@@ -1,18 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { Kafka, Producer } from 'kafkajs';
+import { Producer } from 'kafkajs';
 import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import AuthService from '../services/auth.service';
 import getRedisClient from '../../redis-cache';
+import KafkaProducer from '../utils/getKafkaProducer';
 import { CustomRedisClient } from '../../types';
 import { SESSION_EXPIRE_IN_MS, SESSION_EXPIRE_IN_S } from '../config';
-
-const kafkaClient = new Kafka({
-	clientId: 'dwitter-server',
-	brokers: ['kafka:9092'],
-});
-
-const kfProducer = kafkaClient.producer();
 
 class AuthController {
 	private service: typeof AuthService;
@@ -24,12 +18,7 @@ class AuthController {
 	constructor(service: typeof AuthService) {
 		this.service = service;
 		this.cache = getRedisClient();
-		this.producer = kfProducer;
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const contextHere = this;
-		(async function initializeKfConnection() {
-			await contextHere.producer.connect();
-		})();
+		this.producer = KafkaProducer;
 	}
 
 	async login(req: Request, res: Response, _next: NextFunction) {
