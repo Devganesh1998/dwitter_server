@@ -1,0 +1,25 @@
+# Intermediate cont for building to js
+FROM node:12 As builder
+WORKDIR /app
+COPY package*.json /app
+# Install deps
+RUN yarn install
+
+# copy src files
+COPY . /app
+
+# prod build
+RUN yarn build
+
+# Second level
+FROM node:12
+WORKDIR /app
+COPY package*.json /app
+# Install only prod deps
+RUN yarn install --prod
+
+COPY --from=builder /app/dist ./dist
+COPY .env /app/dist
+
+EXPOSE 4500
+CMD [ "yarn", "run", "start" ]
