@@ -1,6 +1,8 @@
 /* eslint-disable no-await-in-loop */
 import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
+import getRedisClient from './utils';
+import { SESSION_EXPIRE_IN_S } from './config';
 
 dotenv.config();
 
@@ -15,6 +17,7 @@ const kafkaClient = new Kafka({
 const consumer: Consumer = kafkaClient.consumer({ groupId: 'user' });
 
 const initializeConsumption = async () => {
+    const redisClient = getRedisClient();
     let retries = 5;
     while (retries) {
         try {
@@ -23,12 +26,36 @@ const initializeConsumption = async () => {
             await consumer.subscribe({ topic: 'user-register', fromBeginning: true });
             await consumer.run({
                 eachMessage: async ({ topic, partition, message }) => {
+                    const value = message?.value?.toString() || '';
                     console.log({
                         partition,
                         offset: message.offset,
-                        value: message?.value?.toString(),
+                        value,
                         topic,
                     });
+                    const userData = JSON.parse(value) || {};
+                    const {
+                        hashedSessionId,
+                        userId,
+                        // email,
+                        // phoneNo,
+                        // isVerified,
+                        // userName,
+                        // accountStatus,
+                        // accountType,
+                        // userType,
+                        // latestClientIp,
+                        // latestUserAgent,
+                        // sessionStartedAt,
+                    } = userData;
+                    await redisClient.saddAsync([
+                        `userSessions:${userId}`,
+                        `session:${hashedSessionId}`,
+                    ]);
+                    await Promise.all([
+                        redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
+                        redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
+                    ]);
                 },
             });
             break;
