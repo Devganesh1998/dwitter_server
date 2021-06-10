@@ -90,6 +90,23 @@ services:
     volumes:
       - .:/app
     command: npm run dev
+  consumer:
+    container_name: consumer
+    build:
+      context: ./services/kf-consumer
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka
+      - elastic
+      - server
+    ports:
+      - "4501:4500"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./services/kf-consumer:/app
+    command: npm run dev
+
 
 volumes:
   es-data:
