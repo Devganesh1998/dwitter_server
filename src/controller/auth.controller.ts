@@ -131,7 +131,7 @@ class AuthController {
 					this.cache.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]),
 					this.producer.send({
 						topic: 'user-login',
-						messages: [{ value: userDataTokf.toString() }],
+						messages: [{ value: JSON.stringify(userDataTokf) }],
 					}),
 				]);
 				await Promise.all([
@@ -242,7 +242,7 @@ class AuthController {
 				]),
 				this.producer.send({
 					topic: 'user-register',
-					messages: [{ value: userDataTokf.toString() }],
+					messages: [{ value: JSON.stringify(userDataTokf) }],
 				}),
 			]);
 			await Promise.all([
