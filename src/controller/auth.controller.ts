@@ -6,7 +6,7 @@ import AuthService from '../services/auth.service';
 import getRedisClient from '../../redis-cache';
 import KafkaProducer from '../utils/getKafkaProducer';
 import { CustomRedisClient } from '../../types';
-import { SESSION_EXPIRE_IN_MS, SESSION_EXPIRE_IN_S } from '../config';
+import { SESSION_EXPIRE_IN_MS } from '../config';
 
 class AuthController {
 	private service: typeof AuthService;
@@ -128,15 +128,10 @@ class AuthController {
 						'sessionStartedAt',
 						new Date().toString(),
 					]),
-					this.cache.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]),
 					this.producer.send({
 						topic: 'user-login',
 						messages: [{ value: JSON.stringify(userDataTokf) }],
 					}),
-				]);
-				await Promise.all([
-					this.cache.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
-					this.cache.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
 				]);
 				return res.send({
 					message: 'Login successfull',
@@ -236,18 +231,10 @@ class AuthController {
 					'sessionStartedAt',
 					new Date().toString(),
 				]),
-				this.cache.saddAsync([
-					`userSessions:${resultUserId}`,
-					`session:${hashedSessionId}`,
-				]),
 				this.producer.send({
 					topic: 'user-register',
 					messages: [{ value: JSON.stringify(userDataTokf) }],
 				}),
-			]);
-			await Promise.all([
-				this.cache.expireAsync(`userSessions:${resultUserId}`, SESSION_EXPIRE_IN_S),
-				this.cache.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
 			]);
 			res.send({
 				message: 'Registration successfull',
