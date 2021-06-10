@@ -99,10 +99,12 @@ services:
       - kafka
       - elastic
       - server
+      - cache
     ports:
       - "4501:4500"
     environment:
       - NODE_ENV=development
+      - REDIS_HOST=cache
     volumes:
       - ./services/kf-consumer:/app
     command: npm run dev
