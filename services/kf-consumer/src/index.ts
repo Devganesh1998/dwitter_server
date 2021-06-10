@@ -4,8 +4,8 @@ import { Kafka, Consumer } from 'kafkajs';
 
 dotenv.config();
 
-const isDev = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'development';
-const isProd = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'production';
+// const isDev = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'development';
+// const isProd = process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'production';
 
 const kafkaClient = new Kafka({
     clientId: 'dwitter-consumer',
@@ -27,6 +27,7 @@ const initializeConsumption = async () => {
                         partition,
                         offset: message.offset,
                         value: message?.value?.toString(),
+                        topic,
                     });
                 },
             });
