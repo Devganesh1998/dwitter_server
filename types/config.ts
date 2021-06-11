@@ -11,26 +11,26 @@ export type USER_TYPE = 'INTERNAL' | 'EXTERNAL';
 export type GENDER = 'MALE' | 'FEMALE' | 'OTHERS';
 
 export type ConfigType = {
-	database: string;
-	url: string;
-	dialect: Dialect;
+    database: string;
+    url: string;
+    dialect: Dialect;
 };
 
 export interface ConfigInterface {
-	development: ConfigType;
-	production: ConfigType;
+    development: ConfigType;
+    production: ConfigType;
 }
 
 export interface CustomRedisClient extends RedisClient {
-	setAsync: (key: string, value: string) => Promise<unknown>;
-	getAsync: (key: string) => Promise<string | null>;
-	llenAsync: (key: string) => Promise<number>;
-	hsetAsync: (arg1: [string, ...string[]]) => Promise<number>;
-	hgetAsync: (arg1: string, arg2: string) => Promise<string>;
-	rpushAsync: (arg1: [string, ...string[]]) => Promise<number>;
-	expireAsync: (arg1: string, arg2: number) => Promise<number>;
-	hexistsAsync: (arg1: string, arg2: string) => Promise<number>;
-	saddAsync: (arg1: [string, ...string[]]) => Promise<number>;
-	sremAsync: (arg1: [string, ...string[]]) => Promise<number>;
-	delAsync: (arg1: [string, ...string[]]) => Promise<number>;
+    setAsync: (key: string, value: string) => Promise<unknown>;
+    getAsync: (key: string) => Promise<string | null>;
+    llenAsync: (key: string) => Promise<number>;
+    hsetAsync: (arg1: [string, ...string[]]) => Promise<number>;
+    hgetAsync: (arg1: string, arg2: string) => Promise<string>;
+    rpushAsync: (arg1: [string, ...string[]]) => Promise<number>;
+    expireAsync: (arg1: string, arg2: number) => Promise<number>;
+    hexistsAsync: (arg1: string, arg2: string) => Promise<number>;
+    saddAsync: (arg1: [string, ...string[]]) => Promise<number>;
+    sremAsync: (arg1: [string, ...string[]]) => Promise<number>;
+    delAsync: (arg1: [string, ...string[]]) => Promise<number>;
 }
