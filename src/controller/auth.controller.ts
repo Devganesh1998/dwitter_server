@@ -192,15 +192,9 @@ class AuthController {
                 maxAge: SESSION_EXPIRE_IN_MS,
             });
             const userDataTokf = {
+                ...result,
                 hashedSessionId,
                 userId,
-                email: resultEmail || '',
-                phoneNo: phoneNo?.toString() || '',
-                isVerified,
-                userName,
-                accountStatus,
-                accountType,
-                userType,
                 latestClientIp: clientIp,
                 latestUserAgent: userAgent,
                 sessionStartedAt: new Date().toString(),
