@@ -1,8 +1,10 @@
 /* eslint-disable no-await-in-loop */
 import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
+import { Client } from '@elastic/elasticsearch';
 import getRedisClient from './utils';
 import { SESSION_EXPIRE_IN_S } from './config';
+import { CustomRedisClient } from '../types';
 
 dotenv.config();
 
@@ -14,7 +16,25 @@ const kafkaClient = new Kafka({
     brokers: ['kafka:9092'],
 });
 
+const elasticClient = new Client({ node: 'http://elastic:9200' });
+
 const consumer: Consumer = kafkaClient.consumer({ groupId: 'user' });
+
+const manageSessionExpire = async ({
+    redisClient,
+    hashedSessionId,
+    userId,
+}: {
+    redisClient: CustomRedisClient;
+    hashedSessionId: string;
+    userId: string;
+}) => {
+    await redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]);
+    await Promise.all([
+        redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
+        redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
+    ]);
+};
 
 const initializeConsumption = async () => {
     const redisClient = getRedisClient();
@@ -25,37 +45,32 @@ const initializeConsumption = async () => {
             await consumer.subscribe({ topic: 'user-login', fromBeginning: true });
             await consumer.subscribe({ topic: 'user-register', fromBeginning: true });
             await consumer.run({
-                eachMessage: async ({ topic, partition, message }) => {
+                eachMessage: async ({ topic, message }) => {
                     const value = message?.value?.toString() || '';
-                    console.log({
-                        partition,
-                        offset: message.offset,
-                        value,
-                        topic,
-                    });
                     const userData = JSON.parse(value) || {};
-                    const {
-                        hashedSessionId,
-                        userId,
-                        // email,
-                        // phoneNo,
-                        // isVerified,
-                        // userName,
-                        // accountStatus,
-                        // accountType,
-                        // userType,
-                        // latestClientIp,
-                        // latestUserAgent,
-                        // sessionStartedAt,
-                    } = userData;
-                    await redisClient.saddAsync([
-                        `userSessions:${userId}`,
-                        `session:${hashedSessionId}`,
-                    ]);
-                    await Promise.all([
-                        redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
-                        redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
-                    ]);
+                    switch (topic) {
+                        case 'user-login': {
+                            const { hashedSessionId, userId } = userData;
+                            await manageSessionExpire({ redisClient, hashedSessionId, userId });
+                            break;
+                        }
+                        case 'user-register': {
+                            const { hashedSessionId, userId } = userData;
+                            await Promise.all([
+                                elasticClient.index({
+                                    index: 'test',
+                                    id: userId,
+                                    body: {
+                                        ...userData,
+                                    },
+                                }),
+                                manageSessionExpire({ redisClient, hashedSessionId, userId }),
+                            ]);
+                            break;
+                        }
+                        default:
+                            break;
+                    }
                 },
             });
             break;
