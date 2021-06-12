@@ -12,4 +12,5 @@ export interface CustomRedisClient extends RedisClient {
     saddAsync: (arg1: [string, ...string[]]) => Promise<number>;
     sremAsync: (arg1: [string, ...string[]]) => Promise<number>;
     delAsync: (arg1: [string, ...string[]]) => Promise<number>;
+    geoaddAsync: (arg1: [string, ...Array<string | number>]) => Promise<number>;
 }

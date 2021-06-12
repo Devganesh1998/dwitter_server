@@ -1,11 +1,12 @@
 import redis from 'redis';
 import { promisify } from 'util';
+import { SESSION_EXPIRE_IN_S } from './config';
 import { CustomRedisClient } from '../types';
 
 const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
 const REDIS_PORT: number = parseInt(process.env.REDIS_PORT || '', 10) || 6379;
 
-const getRedisClient = (): CustomRedisClient => {
+export const getRedisClient = (): CustomRedisClient => {
     const redisClient: any = redis.createClient({
         host: REDIS_HOST,
         port: REDIS_PORT,
@@ -21,7 +22,44 @@ const getRedisClient = (): CustomRedisClient => {
     redisClient.saddAsync = promisify(redisClient.sadd).bind(redisClient);
     redisClient.sremAsync = promisify(redisClient.srem).bind(redisClient);
     redisClient.delAsync = promisify(redisClient.del).bind(redisClient);
+    redisClient.geoaddAsync = promisify(redisClient.geoadd).bind(redisClient);
     return redisClient;
 };
 
-export default getRedisClient;
+export const manageSessionExpire = async ({
+    redisClient,
+    hashedSessionId,
+    userId,
+}: {
+    redisClient: CustomRedisClient;
+    hashedSessionId: string;
+    userId: string;
+}): Promise<void> => {
+    try {
+        await redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]);
+        await Promise.all([
+            redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
+            redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
+        ]);
+    } catch (err) {
+        console.error(err);
+    }
+};
+
+export const indexGeoInRedis = async ({
+    redisClient,
+    longitude,
+    latitude,
+    userId,
+}: {
+    redisClient: CustomRedisClient;
+    longitude: number;
+    latitude: number;
+    userId: string;
+}): Promise<void> => {
+    try {
+        await redisClient.geoaddAsync(['user:geo-index', longitude, latitude, userId]);
+    } catch (err) {
+        console.error(err);
+    }
+};
