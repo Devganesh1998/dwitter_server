@@ -1,6 +1,7 @@
 /* eslint-disable no-await-in-loop */
 import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
+import geoIp from 'geoip-lite';
 import { Client } from '@elastic/elasticsearch';
 import getRedisClient from './utils';
 import { SESSION_EXPIRE_IN_S } from './config';
@@ -49,7 +50,10 @@ const initializeConsumption = async () => {
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
                     const value = message?.value?.toString() || '';
-                    const userData = JSON.parse(value) || {};
+                    let userData = JSON.parse(value) || {};
+                    const { latestClientIp } = userData;
+                    const location = geoIp.lookup(latestClientIp);
+                    userData = { ...userData, location };
                     switch (topic) {
                         case 'user-login': {
                             const { hashedSessionId, userId } = userData;
