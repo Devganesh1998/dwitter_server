@@ -28,7 +28,7 @@ const manageSessionExpire = async ({
     redisClient: CustomRedisClient;
     hashedSessionId: string;
     userId: string;
-}) => {
+}): Promise<void> => {
     await redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]);
     await Promise.all([
         redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
@@ -42,8 +42,10 @@ const initializeConsumption = async () => {
     while (retries) {
         try {
             await consumer.connect();
-            await consumer.subscribe({ topic: 'user-login', fromBeginning: true });
-            await consumer.subscribe({ topic: 'user-register', fromBeginning: true });
+            await Promise.all([
+                consumer.subscribe({ topic: 'user-login', fromBeginning: true }),
+                consumer.subscribe({ topic: 'user-register', fromBeginning: true }),
+            ]);
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
                     const value = message?.value?.toString() || '';
