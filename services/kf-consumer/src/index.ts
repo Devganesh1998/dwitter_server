@@ -3,9 +3,7 @@ import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
 import geoIp from 'geoip-lite';
 import { Client } from '@elastic/elasticsearch';
-import getRedisClient from './utils';
-import { SESSION_EXPIRE_IN_S } from './config';
-import { CustomRedisClient } from '../types';
+import { getRedisClient, manageSessionExpire, indexGeoInRedis } from './utils';
 
 dotenv.config();
 
@@ -20,22 +18,6 @@ const kafkaClient = new Kafka({
 const elasticClient = new Client({ node: 'http://elastic:9200' });
 
 const consumer: Consumer = kafkaClient.consumer({ groupId: 'user' });
-
-const manageSessionExpire = async ({
-    redisClient,
-    hashedSessionId,
-    userId,
-}: {
-    redisClient: CustomRedisClient;
-    hashedSessionId: string;
-    userId: string;
-}): Promise<void> => {
-    await redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]);
-    await Promise.all([
-        redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
-        redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
-    ]);
-};
 
 const initializeConsumption = async () => {
     const redisClient = getRedisClient();
@@ -53,25 +35,47 @@ const initializeConsumption = async () => {
                     let userData = JSON.parse(value) || {};
                     const { latestClientIp } = userData;
                     const location = geoIp.lookup(latestClientIp);
+                    const {
+                        ll: [latitude = 0, longitude = 0] = [],
+                        city,
+                        country,
+                        region,
+                    } = location || {};
+                    console.log({ city, country, region });
+                    const shouldIndexGeoInRedis = location && latitude && longitude;
                     userData = { ...userData, location };
                     switch (topic) {
                         case 'user-login': {
                             const { hashedSessionId, userId } = userData;
-                            await manageSessionExpire({ redisClient, hashedSessionId, userId });
+                            const promises = [
+                                manageSessionExpire({ redisClient, hashedSessionId, userId }),
+                                shouldIndexGeoInRedis &&
+                                    indexGeoInRedis({ redisClient, latitude, longitude, userId }),
+                            ].filter(Boolean) as Promise<void>[];
+                            await Promise.all(promises);
                             break;
                         }
                         case 'user-register': {
                             const { hashedSessionId, userId } = userData;
-                            await Promise.all([
-                                elasticClient.index({
-                                    index: 'test',
-                                    id: userId,
-                                    body: {
-                                        ...userData,
-                                    },
-                                }),
-                                manageSessionExpire({ redisClient, hashedSessionId, userId }),
-                            ]);
+                            await Promise.all(
+                                [
+                                    elasticClient.index({
+                                        index: 'test',
+                                        id: userId,
+                                        body: {
+                                            ...userData,
+                                        },
+                                    }),
+                                    manageSessionExpire({ redisClient, hashedSessionId, userId }),
+                                    shouldIndexGeoInRedis &&
+                                        indexGeoInRedis({
+                                            redisClient,
+                                            latitude,
+                                            longitude,
+                                            userId,
+                                        }),
+                                ].filter(Boolean) as Promise<void>[]
+                            );
                             break;
                         }
                         default:
