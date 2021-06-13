@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
 import geoIp from 'geoip-lite';
 import { Client } from '@elastic/elasticsearch';
-import { getRedisClient, manageSessionExpire, indexGeoInRedis } from './utils';
+import { getRedisClient, manageSessionData, indexGeoInRedis } from './utils';
 
 dotenv.config();
 
@@ -37,18 +37,24 @@ const initializeConsumption = async () => {
                     const location = geoIp.lookup(latestClientIp);
                     const {
                         ll: [latitude = 0, longitude = 0] = [],
-                        city,
-                        country,
-                        region,
+                        city = '',
+                        country = '',
+                        region = '',
                     } = location || {};
-                    console.log({ city, country, region });
                     const shouldIndexGeoInRedis = location && latitude && longitude;
                     userData = { ...userData, location };
                     switch (topic) {
                         case 'user-login': {
                             const { hashedSessionId, userId } = userData;
                             const promises = [
-                                manageSessionExpire({ redisClient, hashedSessionId, userId }),
+                                manageSessionData({
+                                    redisClient,
+                                    hashedSessionId,
+                                    userId,
+                                    city,
+                                    country,
+                                    region,
+                                }),
                                 shouldIndexGeoInRedis &&
                                     indexGeoInRedis({ redisClient, latitude, longitude, userId }),
                             ].filter(Boolean) as Promise<void>[];
@@ -66,7 +72,14 @@ const initializeConsumption = async () => {
                                             ...userData,
                                         },
                                     }),
-                                    manageSessionExpire({ redisClient, hashedSessionId, userId }),
+                                    manageSessionData({
+                                        redisClient,
+                                        hashedSessionId,
+                                        userId,
+                                        city,
+                                        country,
+                                        region,
+                                    }),
                                     shouldIndexGeoInRedis &&
                                         indexGeoInRedis({
                                             redisClient,

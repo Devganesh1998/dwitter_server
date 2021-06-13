@@ -26,21 +26,36 @@ export const getRedisClient = (): CustomRedisClient => {
     return redisClient;
 };
 
-export const manageSessionExpire = async ({
+export const manageSessionData = async ({
     redisClient,
     hashedSessionId,
     userId,
+    city,
+    country,
+    region,
 }: {
     redisClient: CustomRedisClient;
     hashedSessionId: string;
     userId: string;
+    city: string;
+    country: string;
+    region: string;
 }): Promise<void> => {
     try {
-        await redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]);
         await Promise.all([
-            redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
+            redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]),
+            redisClient.hsetAsync([
+                `session:${hashedSessionId}`,
+                'city',
+                city,
+                'country',
+                country,
+                'region',
+                region,
+            ]),
             redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
         ]);
+        await redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S);
     } catch (err) {
         console.error(err);
     }
