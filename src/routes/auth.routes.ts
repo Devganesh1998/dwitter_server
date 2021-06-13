@@ -5,6 +5,7 @@ import { GENDER } from '../config';
 import AuthController from '../controller/auth.controller';
 import enumValidator from '../customMiddlewares/enumValidator';
 import verifyValidations from '../customMiddlewares/verifyValidations';
+import autoSessionRefresh from '../customMiddlewares/autoSessionRefresh';
 
 const router = Router();
 
@@ -52,6 +53,8 @@ router.post(
     (...args: ControllerArgs) => AuthController.register(...args)
 );
 router.get('/logout', (...args: ControllerArgs) => AuthController.logout(...args));
-router.get('/status', (...args: ControllerArgs) => AuthController.status(...args));
+router.get('/status', autoSessionRefresh, (...args: ControllerArgs) =>
+    AuthController.status(...args)
+);
 
 export default router;
