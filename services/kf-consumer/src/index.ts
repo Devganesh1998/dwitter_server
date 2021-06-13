@@ -15,15 +15,15 @@ const kafkaClient = new Kafka({
     brokers: ['kafka:9092'],
 });
 
-const elasticClient = new Client({ node: 'http://elastic:9200' });
-
 const consumer: Consumer = kafkaClient.consumer({ groupId: 'user' });
 
 const initializeConsumption = async () => {
-    const redisClient = getRedisClient();
     let retries = 5;
     while (retries) {
         try {
+            const redisClient = getRedisClient();
+            const elasticClient = new Client({ node: 'http://elastic:9200' });
+
             await consumer.connect();
             await Promise.all([
                 consumer.subscribe({ topic: 'user-login', fromBeginning: true }),
@@ -33,7 +33,7 @@ const initializeConsumption = async () => {
                 eachMessage: async ({ topic, message }) => {
                     const value = message?.value?.toString() || '';
                     let userData = JSON.parse(value) || {};
-                    const { latestClientIp } = userData;
+                    const { latestClientIp, hashedSessionId, userId } = userData;
                     const location = geoIp.lookup(latestClientIp);
                     const {
                         ll: [latitude = 0, longitude = 0] = [],
@@ -45,7 +45,6 @@ const initializeConsumption = async () => {
                     userData = { ...userData, location };
                     switch (topic) {
                         case 'user-login': {
-                            const { hashedSessionId, userId } = userData;
                             const promises = [
                                 manageSessionData({
                                     redisClient,
@@ -62,7 +61,6 @@ const initializeConsumption = async () => {
                             break;
                         }
                         case 'user-register': {
-                            const { hashedSessionId, userId } = userData;
                             await Promise.all(
                                 [
                                     elasticClient.index({
