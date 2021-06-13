@@ -87,7 +87,7 @@ const initializeConsumption = async () => {
                                             longitude,
                                             userId,
                                         }),
-                                ].filter(Boolean) as Promise<void>[]
+                                ].filter(Boolean) as Promise<any>[]
                             );
                             break;
                         }

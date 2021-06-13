@@ -26,6 +26,23 @@ export const getRedisClient = (): CustomRedisClient => {
     return redisClient;
 };
 
+const manageUserSessionsLink = async ({
+    redisClient,
+    userId,
+    hashedSessionId,
+}: {
+    redisClient: CustomRedisClient;
+    hashedSessionId: string;
+    userId: string;
+}): Promise<void> => {
+    try {
+        await redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]);
+        await redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S);
+    } catch (err) {
+        console.error(err);
+    }
+};
+
 export const manageSessionData = async ({
     redisClient,
     hashedSessionId,
@@ -42,20 +59,23 @@ export const manageSessionData = async ({
     region: string;
 }): Promise<void> => {
     try {
-        await Promise.all([
-            redisClient.saddAsync([`userSessions:${userId}`, `session:${hashedSessionId}`]),
-            redisClient.hsetAsync([
-                `session:${hashedSessionId}`,
-                'city',
-                city,
-                'country',
-                country,
-                'region',
-                region,
-            ]),
-            redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
-        ]);
-        await redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S);
+        const isLocationAvailable = city || country || region;
+        await Promise.all(
+            [
+                manageUserSessionsLink({ redisClient, userId, hashedSessionId }),
+                isLocationAvailable &&
+                    redisClient.hsetAsync([
+                        `session:${hashedSessionId}`,
+                        'city',
+                        city,
+                        'country',
+                        country,
+                        'region',
+                        region,
+                    ]),
+                redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
+            ].filter(Boolean) as Promise<any>[]
+        );
     } catch (err) {
         console.error(err);
     }
