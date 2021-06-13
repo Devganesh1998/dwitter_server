@@ -314,11 +314,63 @@ class AuthController {
                             error_msg: 'Session was removed already, please login',
                         });
                     }
+                    res.cookie('at', '', { maxAge: 0 });
                     return res.send({ message: 'Logout successfull' });
                 }
             }
             return res.status(400).json({
                 error_msg: 'Session not found, please login',
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error_msg: 'Internal server error' });
+        }
+    }
+
+    async status(req: Request, res: Response, _next: NextFunction) {
+        try {
+            const { at: hashedSessionId } = req.cookies || {};
+            if (!hashedSessionId) {
+                return res.send({ isAuthenticated: false });
+            }
+            const [
+                userId,
+                email,
+                phoneNo,
+                isVerified,
+                userName,
+                accountStatus,
+                accountType,
+                userType,
+                sessionStartedAt,
+            ] = await this.cache.hmgetAsync([
+                `session:${hashedSessionId}`,
+                'userId',
+                'email',
+                'phoneNo',
+                'isVerified',
+                'userName',
+                'accountStatus',
+                'accountType',
+                'userType',
+                'sessionStartedAt',
+            ]);
+            if (!userId) {
+                console.log({ userId });
+                return res.send({ isAuthenticated: false });
+            }
+            res.send({
+                isAuthenticated: true,
+                userData: {
+                    email,
+                    phoneNo,
+                    isVerified,
+                    userName,
+                    accountStatus,
+                    accountType,
+                    userType,
+                    sessionStartedAt,
+                },
             });
         } catch (error) {
             console.error(error);

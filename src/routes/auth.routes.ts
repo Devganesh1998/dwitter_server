@@ -52,5 +52,6 @@ router.post(
     (...args: ControllerArgs) => AuthController.register(...args)
 );
 router.get('/logout', (...args: ControllerArgs) => AuthController.logout(...args));
+router.get('/status', (...args: ControllerArgs) => AuthController.status(...args));
 
 export default router;
