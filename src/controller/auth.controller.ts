@@ -88,6 +88,12 @@ class AuthController {
                     // 6 hrs in milliseconds
                     maxAge: SESSION_EXPIRE_IN_MS,
                 });
+                res.cookie('sessionRefreshedAt', JSON.stringify(Date.now()), {
+                    httpOnly: true,
+                    sameSite: 'strict',
+                    // 6 hrs in milliseconds
+                    maxAge: SESSION_EXPIRE_IN_MS,
+                });
                 const userDataTokf = {
                     hashedSessionId,
                     userId,
@@ -196,6 +202,12 @@ class AuthController {
             } = result;
             const hashedSessionId = await bcrypt.hash(`${resultUserId}:${Date.now()}`, 2);
             res.cookie('at', hashedSessionId, {
+                httpOnly: true,
+                sameSite: 'strict',
+                // 6 hrs in milliseconds
+                maxAge: SESSION_EXPIRE_IN_MS,
+            });
+            res.cookie('sessionRefreshedAt', JSON.stringify(Date.now()), {
                 httpOnly: true,
                 sameSite: 'strict',
                 // 6 hrs in milliseconds
@@ -315,6 +327,7 @@ class AuthController {
                         });
                     }
                     res.cookie('at', '', { maxAge: 0 });
+                    res.cookie('sessionRefreshedAt', '', { maxAge: 0 });
                     return res.send({ message: 'Logout successfull' });
                 }
             }
@@ -356,7 +369,6 @@ class AuthController {
                 'sessionStartedAt',
             ]);
             if (!userId) {
-                console.log({ userId });
                 return res.send({ isAuthenticated: false });
             }
             res.send({
