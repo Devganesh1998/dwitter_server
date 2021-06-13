@@ -15,6 +15,7 @@ const getRedisClient = (): CustomRedisClient => {
     redisClient.llenAsync = promisify(redisClient.llen).bind(redisClient);
     redisClient.hsetAsync = promisify(redisClient.hset).bind(redisClient);
     redisClient.hgetAsync = promisify(redisClient.hget).bind(redisClient);
+    redisClient.hmgetAsync = promisify(redisClient.hmget).bind(redisClient);
     redisClient.rpushAsync = promisify(redisClient.rpush).bind(redisClient);
     redisClient.expireAsync = promisify(redisClient.expire).bind(redisClient);
     redisClient.hexistsAsync = promisify(redisClient.hexists).bind(redisClient);
