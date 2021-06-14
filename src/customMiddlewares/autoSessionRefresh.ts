@@ -10,6 +10,8 @@ const autoSessionRefresh = async (
     next: NextFunction
 ): Promise<void> => {
     const { sessionRefreshedAt = 0, at: hashedSessionId } = req.cookies || {};
+    // cookie `sessionRefreshedAt` containing value as the session refreshed date and in each request using the date stored verifying 3hrs passed since the last session refresh
+    // then resetting the expiry to session data in redis to 6hrs.
     const shouldResetSessionExpire = sessionRefreshedAt + THREE_HOURS_IN_MS < Date.now();
     if (sessionRefreshedAt && shouldResetSessionExpire) {
         const redisClient = getRedisClient();
