@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import { SESSION_EXPIRE_IN_MS, SESSION_EXPIRE_IN_S } from '../config';
-import getRedisClient from '../../redis-cache';
+import { SESSION_EXPIRE_IN_MS } from '../config';
+import KafkaProducer from '../utils/getKafkaProducer';
 
 const THREE_HOURS_IN_MS = 3 * 60 * 60 * 1000;
 
@@ -12,27 +12,29 @@ const autoSessionRefresh = async (
     const { sessionRefreshedAt = 0, at: hashedSessionId } = req.cookies || {};
     // cookie `sessionRefreshedAt` containing value as the session refreshed date and in each request using the date stored verifying 3hrs passed since the last session refresh
     // then resetting the expiry to session data in redis to 6hrs.
-    const shouldResetSessionExpire = sessionRefreshedAt + THREE_HOURS_IN_MS < Date.now();
+    const shouldResetSessionExpire =
+        parseInt(sessionRefreshedAt, 10) + THREE_HOURS_IN_MS < Date.now();
     if (sessionRefreshedAt && shouldResetSessionExpire) {
-        const redisClient = getRedisClient();
-        res.cookie('at', hashedSessionId, {
-            httpOnly: true,
-            sameSite: 'strict',
-            // 6 hrs in milliseconds
-            maxAge: SESSION_EXPIRE_IN_MS,
-        });
-        res.cookie('sessionRefreshedAt', JSON.stringify(Date.now()), {
-            httpOnly: true,
-            sameSite: 'strict',
-            // 6 hrs in milliseconds
-            maxAge: SESSION_EXPIRE_IN_MS,
-        });
-        const [userId] = await Promise.all([
-            redisClient.hget(`session:${hashedSessionId}`, 'userId'),
-            redisClient.expireAsync(`session:${hashedSessionId}`, SESSION_EXPIRE_IN_S),
-        ]);
-        if (userId) {
-            await redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S);
+        try {
+            res.cookie('at', hashedSessionId, {
+                httpOnly: true,
+                sameSite: 'strict',
+                // 6 hrs in milliseconds
+                maxAge: SESSION_EXPIRE_IN_MS,
+            });
+            res.cookie('sessionRefreshedAt', JSON.stringify(Date.now()), {
+                httpOnly: true,
+                sameSite: 'strict',
+                // 6 hrs in milliseconds
+                maxAge: SESSION_EXPIRE_IN_MS,
+            });
+            await KafkaProducer.send({
+                topic: 'session-refresh',
+                messages: [{ value: JSON.stringify({ hashedSessionId }) }],
+            });
+        } catch (err) {
+            console.error(err);
+            return next();
         }
     }
     next();
