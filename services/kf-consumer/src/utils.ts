@@ -98,3 +98,53 @@ export const indexGeoInRedis = async ({
         console.error(err);
     }
 };
+
+export const refreshSessionExpire = async ({
+    redisClient,
+    longitude,
+    latitude,
+    hashedSessionId,
+    city,
+    country,
+    region,
+}: {
+    redisClient: CustomRedisClient;
+    longitude: number;
+    latitude: number;
+    hashedSessionId: string;
+    city: string;
+    country: string;
+    region: string;
+}): Promise<void> => {
+    try {
+        const shouldIndexGeoInRedis = longitude || latitude;
+        const isLocationAvailable = city || country || region;
+        const userId = await redisClient.hgetAsync(`session:${hashedSessionId}`, 'userId');
+        if (userId) {
+            await Promise.all(
+                [
+                    redisClient.expireAsync(`userSessions:${userId}`, SESSION_EXPIRE_IN_S),
+                    shouldIndexGeoInRedis &&
+                        indexGeoInRedis({
+                            redisClient,
+                            latitude,
+                            longitude,
+                            userId,
+                        }),
+                    isLocationAvailable &&
+                        redisClient.hsetAsync([
+                            `session:${hashedSessionId}`,
+                            'city',
+                            city,
+                            'country',
+                            country,
+                            'region',
+                            region,
+                        ]),
+                ].filter(Boolean) as Promise<any>[]
+            );
+        }
+    } catch (err) {
+        console.error(err);
+    }
+};

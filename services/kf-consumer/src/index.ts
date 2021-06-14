@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
 import geoIp from 'geoip-lite';
 import { Client } from '@elastic/elasticsearch';
-import { getRedisClient, manageSessionData, indexGeoInRedis } from './utils';
+import { getRedisClient, manageSessionData, indexGeoInRedis, refreshSessionExpire } from './utils';
 import { SESSION_EXPIRE_IN_S } from './config';
 
 dotenv.config();
@@ -104,20 +104,29 @@ const initializeConsumption = async () => {
                             break;
                         }
                         case 'session-refresh': {
-                            const { hashedSessionId } = parsedValue;
-                            const [userId] = await Promise.all([
-                                redisClient.hget(`session:${hashedSessionId}`, 'userId'),
+                            const { latestClientIp, hashedSessionId } = parsedValue;
+                            const location = geoIp.lookup(latestClientIp);
+                            const {
+                                ll: [latitude = 0, longitude = 0] = [],
+                                city = '',
+                                country = '',
+                                region = '',
+                            } = location || {};
+                            await Promise.all([
+                                refreshSessionExpire({
+                                    redisClient,
+                                    longitude,
+                                    latitude,
+                                    hashedSessionId,
+                                    city,
+                                    country,
+                                    region,
+                                }),
                                 redisClient.expireAsync(
                                     `session:${hashedSessionId}`,
                                     SESSION_EXPIRE_IN_S
                                 ),
                             ]);
-                            if (userId) {
-                                await redisClient.expireAsync(
-                                    `userSessions:${userId}`,
-                                    SESSION_EXPIRE_IN_S
-                                );
-                            }
                             break;
                         }
                         default:
