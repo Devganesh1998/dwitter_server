@@ -10,6 +10,8 @@ const autoSessionRefresh = async (
     next: NextFunction
 ): Promise<void> => {
     const { sessionRefreshedAt = 0, at: hashedSessionId } = req.cookies || {};
+    const clientIp = req.ip || req.ips[0];
+    const userAgent = req.get('user-agent') || '';
     // cookie `sessionRefreshedAt` containing value as the session refreshed date and in each request using the date stored verifying 3hrs passed since the last session refresh
     // then resetting the expiry to session data in redis to 6hrs.
     const shouldResetSessionExpire =
@@ -30,7 +32,15 @@ const autoSessionRefresh = async (
             });
             await KafkaProducer.send({
                 topic: 'session-refresh',
-                messages: [{ value: JSON.stringify({ hashedSessionId }) }],
+                messages: [
+                    {
+                        value: JSON.stringify({
+                            hashedSessionId,
+                            latestUserAgent: userAgent,
+                            latestClientIp: clientIp,
+                        }),
+                    },
+                ],
             });
         } catch (err) {
             console.error(err);
