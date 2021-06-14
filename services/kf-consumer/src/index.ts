@@ -4,6 +4,7 @@ import { Kafka, Consumer } from 'kafkajs';
 import geoIp from 'geoip-lite';
 import { Client } from '@elastic/elasticsearch';
 import { getRedisClient, manageSessionData, indexGeoInRedis } from './utils';
+import { SESSION_EXPIRE_IN_S } from './config';
 
 dotenv.config();
 
@@ -28,23 +29,25 @@ const initializeConsumption = async () => {
             await Promise.all([
                 consumer.subscribe({ topic: 'user-login', fromBeginning: true }),
                 consumer.subscribe({ topic: 'user-register', fromBeginning: true }),
+                consumer.subscribe({ topic: 'session-refresh', fromBeginning: true }),
             ]);
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
                     const value = message?.value?.toString() || '';
-                    let userData = JSON.parse(value) || {};
-                    const { latestClientIp, hashedSessionId, userId } = userData;
-                    const location = geoIp.lookup(latestClientIp);
-                    const {
-                        ll: [latitude = 0, longitude = 0] = [],
-                        city = '',
-                        country = '',
-                        region = '',
-                    } = location || {};
-                    const shouldIndexGeoInRedis = location && latitude && longitude;
-                    userData = { ...userData, location };
+                    const parsedValue = JSON.parse(value) || {};
                     switch (topic) {
                         case 'user-login': {
+                            let userData = parsedValue;
+                            const { latestClientIp, hashedSessionId, userId } = userData;
+                            const location = geoIp.lookup(latestClientIp);
+                            const {
+                                ll: [latitude = 0, longitude = 0] = [],
+                                city = '',
+                                country = '',
+                                region = '',
+                            } = location || {};
+                            const shouldIndexGeoInRedis = location && latitude && longitude;
+                            userData = { ...userData, location };
                             const promises = [
                                 manageSessionData({
                                     redisClient,
@@ -61,6 +64,17 @@ const initializeConsumption = async () => {
                             break;
                         }
                         case 'user-register': {
+                            let userData = parsedValue;
+                            const { latestClientIp, hashedSessionId, userId } = userData;
+                            const location = geoIp.lookup(latestClientIp);
+                            const {
+                                ll: [latitude = 0, longitude = 0] = [],
+                                city = '',
+                                country = '',
+                                region = '',
+                            } = location || {};
+                            const shouldIndexGeoInRedis = location && latitude && longitude;
+                            userData = { ...userData, location };
                             await Promise.all(
                                 [
                                     elasticClient.index({
@@ -87,6 +101,23 @@ const initializeConsumption = async () => {
                                         }),
                                 ].filter(Boolean) as Promise<any>[]
                             );
+                            break;
+                        }
+                        case 'session-refresh': {
+                            const { hashedSessionId } = parsedValue;
+                            const [userId] = await Promise.all([
+                                redisClient.hget(`session:${hashedSessionId}`, 'userId'),
+                                redisClient.expireAsync(
+                                    `session:${hashedSessionId}`,
+                                    SESSION_EXPIRE_IN_S
+                                ),
+                            ]);
+                            if (userId) {
+                                await redisClient.expireAsync(
+                                    `userSessions:${userId}`,
+                                    SESSION_EXPIRE_IN_S
+                                );
+                            }
                             break;
                         }
                         default:
