@@ -134,7 +134,7 @@ recede, depart, fade, disappear, move, travel, proceed, Go
 excellent, fine, superior, wonderful, marvelous, qualified, suited, suitable, apt, proper, capable, generous, kindly, friendly, gracious, obliging, pleasant, agreeable, pleasurable, satisfactory, well-behaved, obedient, honorable, reliable, trustworthy, safe, favorable, profitable, advantageous, righteous, expedient, helpful, valid, genuine, ample, salubrious, estimable, beneficial, splendid, great, noble, worthy, first-rate, top-notch, grand, sterling, superb, respectable, edifying, Good
 noteworthy, worthy, distinguished, remarkable, grand, considerable, powerful, much, mighty, Great
 improper, rude, coarse, indecent, crude, vulgar, outrageous, extreme, grievous, shameful, uncouth, obscene, low, Gross
-pleased, contented, satisfied, delighted, elated, joyful, cheerful, ecstatic, jubilant, gay, tickled, gratified, glad, blissful, overjoyed, Happy
+pleased, contented, satisfied, delighted, elated, joyful, cheerful, ecstatic, jubilant, tickled, gratified, glad, blissful, overjoyed, Happy
 despise, loathe, detest, abhor, disfavor, dislike, disapprove, abominate, Hate
 hold, possess, own, contain, acquire, gain, maintain, believe, bear, beget, occupy, absorb, fill, enjoy, Have
 aid, assist, support, encourage, back, attend, serve, relieve, succor, benefit, befriend, abet, Help

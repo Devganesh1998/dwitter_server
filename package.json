@@ -39,6 +39,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "@elastic/elasticsearch": "^7.13.0",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.5",
     "dotenv": "^9.0.2",
