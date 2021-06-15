@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { oneOf, body } from 'express-validator';
+import { oneOf, body, query } from 'express-validator';
 import { ControllerArgs } from '../../types';
 import { GENDER } from '../config';
 import AuthController from '../controller/auth.controller';
@@ -55,6 +55,19 @@ router.post(
 router.get('/logout', (...args: ControllerArgs) => AuthController.logout(...args));
 router.get('/status', autoSessionRefresh, (...args: ControllerArgs) =>
     AuthController.status(...args)
+);
+router.get(
+    '/availability',
+    [
+        query('userName', 'Please provide userName in query to check availability')
+            .exists({ checkFalsy: true })
+            .bail()
+            .isString()
+            .bail()
+            .trim(),
+    ],
+    verifyValidations,
+    (...args: ControllerArgs) => AuthController.availability(...args)
 );
 
 export default router;
