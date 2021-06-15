@@ -49,6 +49,7 @@ services:
     container_name: elasticsearch
     volumes:
       - es-data:/usr/share/elasticsearch/data
+      - ./synonym.txt:/usr/share/elasticsearch/config/analysis/synonym.txt
       # - ./elasticsearch-config.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     ports:
       - 9200:9200

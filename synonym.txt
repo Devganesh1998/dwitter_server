@@ -118,8 +118,8 @@ execute, enact, carry out, finish, conclude, effect, accomplish, achieve, attain
 boring, tiring„ tiresome, uninteresting, slow, dumb, stupid, unimaginative, lifeless, dead, insensible, tedious, wearisome, listless, expressionless, plain, monotonous, humdrum, dreary => Dull
 keen, fervent, enthusiastic, involved, interested => Eager
 stop, finish, terminate, conclude, close, halt, cessation, discontinuance => End
-appreciate, delight in, be pleased, indulge in, luxuriate in, bask in, relish, devour, savor, like => Enjoy
-elaborate, clarify, define, interpret, justify, account for => Explain
+appreciate, delight, pleased, indulge, luxuriate, bask, relish, devour, savor, like => Enjoy
+elaborate, clarify, define, interpret, justify => Explain
 just, impartial, unbiased, objective, unprejudiced, honest => Fair
 drop, descend, plunge, topple, tumble => Fall
 fake, fraudulent, counterfeit, spurious, untrue, unfounded, erroneous, deceptive, groundless, fallacious => False
@@ -129,7 +129,7 @@ stout, corpulent, fleshy, beefy, paunchy, plump, full, rotund, tubby, pudgy, chu
 fright, dread, terror, alarm, dismay, anxiety, scare, awe, horror, panic, apprehension => Fear
 soar, hover, flit, wing, flee, waft, glide, coast, skim, sail, cruise => Fly
 humorous, amusing, droll, comic, comical, laughable, silly => Funny
-acquire, obtain, secure, procure, gain, fetch, find, score, accumulate, win, earn, rep, catch, net, bag, derive, collect, gather, glean, pick up, accept, come by, regain, salvage => Get
+acquire, obtain, secure, procure, gain, fetch, find, score, accumulate, win, earn, rep, catch, net, bag, derive, collect, gather, glean, accept, regain, salvage => Get
 recede, depart, fade, disappear, move, travel, proceed => Go
 excellent, fine, superior, wonderful, marvelous, qualified, suited, suitable, apt, proper, capable, generous, kindly, friendly, gracious, obliging, pleasant, agreeable, pleasurable, satisfactory, well-behaved, obedient, honorable, reliable, trustworthy, safe, favorable, profitable, advantageous, righteous, expedient, helpful, valid, genuine, ample, salubrious, estimable, beneficial, splendid, great, noble, worthy, first-rate, top-notch, grand, sterling, superb, respectable, edifying => Good
 noteworthy, worthy, distinguished, remarkable, grand, considerable, powerful, much, mighty => Great
@@ -137,7 +137,7 @@ improper, rude, coarse, indecent, crude, vulgar, outrageous, extreme, grievous, 
 pleased, contented, satisfied, delighted, elated, joyful, cheerful, ecstatic, jubilant, gay, tickled, gratified, glad, blissful, overjoyed => Happy
 despise, loathe, detest, abhor, disfavor, dislike, disapprove, abominate => Hate
 hold, possess, own, contain, acquire, gain, maintain, believe, bear, beget, occupy, absorb, fill, enjoy => Have
-aid, assist, support, encourage, back, wait on, attend, serve, relieve, succor, benefit, befriend, abet => Help
+aid, assist, support, encourage, back, attend, serve, relieve, succor, benefit, befriend, abet => Help
 conceal, cover, mask, cloak, camouflage, screen, shroud, veil => Hide
 rush, run, speed, race, hasten, urge, accelerate, bustle => Hurry
 damage, harm, injure, wound, distress, afflict, pain => Hurt
@@ -474,8 +474,7 @@ mistrust, distrust
 mo, moment
 moderately, reasonably
 modern, contemporary
-more, and more	increasingly
-moreover, in addition
+moreover, addition
 movie, film
 murderer, assassin
 naked, bare
@@ -489,7 +488,7 @@ necessary, essential
 nightfall, dusk
 nobility, Aristocracy
 nominate, appoint
-non-stop	continuous
+non-stop, continuous
 noon, midday
 noted, famous
 notify, inform
