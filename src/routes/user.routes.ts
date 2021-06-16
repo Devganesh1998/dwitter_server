@@ -9,6 +9,20 @@ import enumValidator from '../customMiddlewares/enumValidator';
 
 const router = Router();
 
+router.get(
+    '/availability',
+    [
+        query('userName', 'Please provide userName in query to check availability')
+            .exists({ checkFalsy: true })
+            .bail()
+            .isString()
+            .bail()
+            .trim(),
+    ],
+    verifyValidations,
+    (...args: ControllerArgs) => UserController.availability(...args)
+);
+
 router.post(
     '/autocomplete',
     [
