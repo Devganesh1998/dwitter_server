@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
-import { Client } from '@elastic/elasticsearch';
 import bcrypt from 'bcrypt';
 import { Producer } from 'kafkajs';
 import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import AuthService from '../services/auth.service';
 import getRedisClient from '../../redis-cache';
 import KafkaProducer from '../utils/getKafkaProducer';
-import elasticClient from '../utils/getElasticClient';
 import { CustomRedisClient } from '../../types';
 import { SESSION_EXPIRE_IN_MS } from '../config';
 
@@ -17,13 +15,10 @@ class AuthController {
 
     private cache: CustomRedisClient;
 
-    private elastic: Client;
-
     constructor(service: typeof AuthService) {
         this.service = service;
         this.cache = getRedisClient();
         this.producer = KafkaProducer;
-        this.elastic = elasticClient;
     }
 
     async login(req: Request, res: Response, _next: NextFunction) {
@@ -389,34 +384,6 @@ class AuthController {
                     sessionStartedAt,
                 },
             });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error_msg: 'Internal server error' });
-        }
-    }
-
-    async availability(req: Request, res: Response, _next: NextFunction) {
-        try {
-            const { userName = '' } = req.query;
-            const { statusCode, body: { count = 0 } = {} } = await this.elastic.count({
-                index: 'users',
-                body: {
-                    query: {
-                        term: {
-                            'userName.keyword': {
-                                value: userName,
-                            },
-                        },
-                    },
-                },
-            });
-            if (statusCode !== 200) {
-                return res.status(500).json({ error_msg: 'Internal server error' });
-            }
-            if (count === 0) {
-                return res.send({ userName, isAvailable: true });
-            }
-            return res.send({ userName, isAvailable: false });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
