@@ -60,7 +60,12 @@ class UserController {
             if (statusCode !== 200) {
                 return res.status(500).json({ error_msg: 'Internal server error' });
             }
-            return res.send({ suggestions });
+            return res.send({
+                suggestions: suggestions.reduce(
+                    (acc: [], { options }: { options: string[] }) => [...acc, ...options],
+                    []
+                ),
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
