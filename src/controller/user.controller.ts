@@ -11,6 +11,38 @@ class UserController {
         this.elastic = elasticClient;
     }
 
+    static filterOutputKeys(source: UserAttributes) {
+        const outputKeys = [
+            'name',
+            'age',
+            'gender',
+            'userName',
+            'phoneNo',
+            'email',
+            'accountStatus',
+            'accountType',
+            'userType',
+            'isVerified',
+            'followersCount',
+            'followingCount',
+            'dateOfBirth',
+            'countryCode',
+            'description',
+            'profileImgUrl',
+            'posterImgUrl',
+        ];
+        const filteredOutputDoc = Object.entries(source)
+            .filter(([key]) => outputKeys.includes(key))
+            .reduce(
+                (a, [key, value]) => ({
+                    ...a,
+                    [key]: value,
+                }),
+                {}
+            ) as unknown as UserAttributes;
+        return filteredOutputDoc;
+    }
+
     async availability(req: Request, res: Response, _next: NextFunction) {
         try {
             const { userName = '' } = req.query;
@@ -67,47 +99,18 @@ class UserController {
             if (statusCode !== 200) {
                 return res.status(500).json({ error_msg: 'Internal server error' });
             }
+            const filteredSuggestions = suggestions.reduce(
+                (acc: Array<{ text: string; doc: UserAttributes }>, { options }) => {
+                    const filteredOptions = options.map(({ text, _source }) => ({
+                        text,
+                        doc: UserController.filterOutputKeys(_source),
+                    }));
+                    return [...acc, ...filteredOptions];
+                },
+                []
+            );
             return res.send({
-                suggestions: suggestions.reduce(
-                    (acc: Array<{ text: string; doc: UserAttributes }>, { options }) => {
-                        const filteredOptions = options.map(({ text, _source }) => {
-                            const outputKeys = [
-                                'name',
-                                'age',
-                                'gender',
-                                'userName',
-                                'phoneNo',
-                                'email',
-                                'accountStatus',
-                                'accountType',
-                                'userType',
-                                'isVerified',
-                                'followersCount',
-                                'followingCount',
-                                'dateOfBirth',
-                                'countryCode',
-                                'description',
-                                'profileImgUrl',
-                                'posterImgUrl',
-                            ];
-                            const filteredOutputDoc = Object.entries(_source)
-                                .filter(([key]) => outputKeys.includes(key))
-                                .reduce(
-                                    (a, [key, value]) => ({
-                                        ...a,
-                                        [key]: value,
-                                    }),
-                                    {}
-                                ) as unknown as UserAttributes;
-                            return {
-                                text,
-                                doc: filteredOutputDoc,
-                            };
-                        });
-                        return [...acc, ...filteredOptions];
-                    },
-                    []
-                ),
+                suggestions: filteredSuggestions,
             });
         } catch (error) {
             console.error(error);
