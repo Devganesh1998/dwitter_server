@@ -6,11 +6,11 @@ import {
 } from './interfaces/Hashtag';
 import { Models, CustomModel } from './interfaces/common';
 
-export default function TweetModel(
+export default function HashTagModel(
     sequelize: Sequelize,
     dataTypes: typeof DataTypes
 ): CustomModel<HashTagAttributes, HashTagCreationAttributes> {
-    const Tweet: CustomModel<HashTagAttributes, HashTagCreationAttributes> =
+    const HashTag: CustomModel<HashTagAttributes, HashTagCreationAttributes> =
         sequelize.define<HashTagInstance>(
             'Hashtag',
             {
@@ -18,6 +18,11 @@ export default function TweetModel(
                     primaryKey: true,
                     type: dataTypes.STRING,
                     allowNull: false,
+                },
+                category: {
+                    type: dataTypes.STRING,
+                    allowNull: true,
+                    defaultValue: '',
                 },
                 description: {
                     allowNull: false,
@@ -32,15 +37,15 @@ export default function TweetModel(
                 tableName: 'hashtags',
                 indexes: [
                     {
-                        fields: [{ name: 'createdAt', order: 'DESC' }],
+                        fields: [{ name: 'createdAt', order: 'DESC' }, { name: 'category' }],
                     },
                 ],
                 timestamps: true,
             }
         );
 
-    Tweet.associate = (models: Models) => {
-        Tweet.belongsTo(models.User, {
+    HashTag.associate = (models: Models) => {
+        HashTag.belongsTo(models.User, {
             foreignKey: {
                 name: 'createdBy',
                 allowNull: false,
@@ -48,5 +53,5 @@ export default function TweetModel(
         });
     };
 
-    return Tweet;
+    return HashTag;
 }

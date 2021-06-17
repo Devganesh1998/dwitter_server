@@ -3,6 +3,7 @@ import { Model } from 'sequelize';
 export interface HashTagAttributes {
     hashtag: string;
     description: string;
+    category: string;
     followersCount?: number;
     createdBy?: string;
 }
