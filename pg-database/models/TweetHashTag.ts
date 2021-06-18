@@ -23,6 +23,11 @@ export default function TweetHashTagModel(
             },
             {
                 tableName: 'tweet_hashtags',
+                indexes: [
+                    {
+                        fields: [{ name: 'hashtag' }, { name: 'tweetId' }],
+                    },
+                ],
                 timestamps: true,
             }
         );
