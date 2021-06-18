@@ -73,7 +73,7 @@ class UserController {
 
     async autoComplete(req: Request, res: Response, _next: NextFunction) {
         try {
-            const { fieldType = '', prefix = '' } = req.body;
+            const { fieldType = '', prefix = '' }: { fieldType: string; prefix: string } = req.body;
             const {
                 statusCode,
                 body: { suggest: { suggestions = [] } = {} } = {},
