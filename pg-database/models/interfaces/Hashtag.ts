@@ -1,4 +1,4 @@
-import { Model } from 'sequelize';
+import { Model, Optional } from 'sequelize';
 
 export interface HashTagAttributes {
     hashtag: string;
@@ -8,7 +8,7 @@ export interface HashTagAttributes {
     createdBy?: string;
 }
 
-export type HashTagCreationAttributes = Record<string, unknown>;
+export type HashTagCreationAttributes = Optional<HashTagAttributes, 'hashtag'>;
 
 export interface HashTagInstance
     extends Model<HashTagAttributes, HashTagCreationAttributes>,

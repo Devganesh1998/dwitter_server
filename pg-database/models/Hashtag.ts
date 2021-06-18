@@ -12,7 +12,7 @@ export default function HashTagModel(
 ): CustomModel<HashTagAttributes, HashTagCreationAttributes> {
     const HashTag: CustomModel<HashTagAttributes, HashTagCreationAttributes> =
         sequelize.define<HashTagInstance>(
-            'Hashtag',
+            'HashTag',
             {
                 hashtag: {
                     primaryKey: true,

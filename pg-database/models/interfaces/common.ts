@@ -10,7 +10,7 @@ export interface Models {
     User: ModelCtor<Model<UserAttributes, UserCreationAttributes>>;
     Comment: ModelCtor<Model<CommentAttributes, CommentCreationAttributes>>;
     NestedComment: ModelCtor<Model<NestedCommentAttributes, NestedCommentCreationAttributes>>;
-    HahTag: ModelCtor<Model<HashTagAttributes, HashTagCreationAttributes>>;
+    HashTag: ModelCtor<Model<HashTagAttributes, HashTagCreationAttributes>>;
 }
 
 export type CustomModel<TModelAttributes = any, TCreationAttributes = any> = ModelCtor<
