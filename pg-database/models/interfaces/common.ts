@@ -3,6 +3,7 @@ import { CommentAttributes, CommentCreationAttributes } from './Comment';
 import { HashTagAttributes, HashTagCreationAttributes } from './Hashtag';
 import { NestedCommentAttributes, NestedCommentCreationAttributes } from './NestedComment';
 import { TweetAttributes, TweetCreationAttributes } from './Tweet';
+import { TweetHashTagAttributes, TweetHashTagCreationAttributes } from './TweetHashTag';
 import { UserAttributes, UserCreationAttributes } from './User';
 
 export interface Models {
@@ -11,6 +12,7 @@ export interface Models {
     Comment: ModelCtor<Model<CommentAttributes, CommentCreationAttributes>>;
     NestedComment: ModelCtor<Model<NestedCommentAttributes, NestedCommentCreationAttributes>>;
     HashTag: ModelCtor<Model<HashTagAttributes, HashTagCreationAttributes>>;
+    TweetHashTag: ModelCtor<Model<TweetHashTagAttributes, TweetHashTagCreationAttributes>>;
 }
 
 export type CustomModel<TModelAttributes = any, TCreationAttributes = any> = ModelCtor<
