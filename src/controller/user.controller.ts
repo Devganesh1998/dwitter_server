@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import { Client } from '@elastic/elasticsearch';
-import { SuggestionResult } from '../../types';
+import { SuggestionResult, SuggestionResultOption } from '../../types';
 import elasticClient from '../utils/getElasticClient';
 import { UserAttributes } from '../../pg-database/models/interfaces/User';
+import { USER_AUTOCOMPLETE_FIELDS } from '../config';
 
 class UserController {
     private elastic: Client;
@@ -74,6 +75,67 @@ class UserController {
     async autoComplete(req: Request, res: Response, _next: NextFunction) {
         try {
             const { fieldType = '', prefix = '' }: { fieldType: string; prefix: string } = req.body;
+            if (fieldType === USER_AUTOCOMPLETE_FIELDS.all) {
+                const queryBody = {
+                    suggest: {
+                        ...Object.keys(USER_AUTOCOMPLETE_FIELDS)
+                            .filter((key) => key !== USER_AUTOCOMPLETE_FIELDS.all)
+                            .reduce(
+                                (acc, current) => ({
+                                    ...acc,
+                                    [`${current}-suggestions`]: {
+                                        prefix,
+                                        completion: {
+                                            field: current,
+                                            fuzzy: {
+                                                fuzziness: 'AUTO',
+                                            },
+                                        },
+                                    },
+                                }),
+                                {}
+                            ),
+                    },
+                };
+                const {
+                    statusCode,
+                    body: { suggest: suggestResult = {} } = {},
+                }: {
+                    statusCode: number | null;
+                    body: {
+                        suggest?: {
+                            'email-suggestions'?: SuggestionResult<UserAttributes>[];
+                            'userName-suggestions'?: SuggestionResult<UserAttributes>[];
+                        };
+                    };
+                } = await this.elastic.search({
+                    index: 'users',
+                    body: queryBody,
+                });
+                if (statusCode !== 200) {
+                    return res.status(500).json({ error_msg: 'Internal server error' });
+                }
+                const suggestions = Object.keys(suggestResult).reduce(
+                    (acc, current) => ({
+                        ...acc,
+                        [current]: suggestResult[current].reduce(
+                            (
+                                accu: Array<{ text: string; doc: UserAttributes }>,
+                                { options }: { options: SuggestionResultOption<UserAttributes>[] }
+                            ) => {
+                                const filteredOptions = options.map(({ text, _source }) => ({
+                                    text,
+                                    doc: UserController.filterOutputKeys(_source),
+                                }));
+                                return [...accu, ...filteredOptions];
+                            },
+                            []
+                        ),
+                    }),
+                    {}
+                );
+                return res.send({ suggestions });
+            }
             const {
                 statusCode,
                 body: { suggest: { suggestions = [] } = {} } = {},
