@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Client } from '@elastic/elasticsearch';
-import { SuggestionResult, SuggestionResultOption } from '../../types';
+import { SuggestionResult } from '../../types';
 import elasticClient from '../utils/getElasticClient';
 import { UserAttributes } from '../../pg-database/models/interfaces/User';
 import { USER_AUTOCOMPLETE_FIELDS } from '../config';
@@ -42,6 +42,19 @@ class UserController {
                 {}
             ) as unknown as UserAttributes;
         return filteredOutputDoc;
+    }
+
+    static filterSuggestionsKeys(suggestions: SuggestionResult<UserAttributes>[]) {
+        return suggestions.reduce(
+            (acc: Array<{ text: string; doc: UserAttributes }>, { options }) => {
+                const filteredOptions = options.map(({ text, _source }) => ({
+                    text,
+                    doc: UserController.filterOutputKeys(_source),
+                }));
+                return [...acc, ...filteredOptions];
+            },
+            []
+        );
     }
 
     async availability(req: Request, res: Response, _next: NextFunction) {
@@ -118,19 +131,7 @@ class UserController {
                 const suggestions = Object.keys(suggestResult).reduce(
                     (acc, current) => ({
                         ...acc,
-                        [current]: suggestResult[current].reduce(
-                            (
-                                accu: Array<{ text: string; doc: UserAttributes }>,
-                                { options }: { options: SuggestionResultOption<UserAttributes>[] }
-                            ) => {
-                                const filteredOptions = options.map(({ text, _source }) => ({
-                                    text,
-                                    doc: UserController.filterOutputKeys(_source),
-                                }));
-                                return [...accu, ...filteredOptions];
-                            },
-                            []
-                        ),
+                        [current]: UserController.filterSuggestionsKeys(suggestResult[current]),
                     }),
                     {}
                 );
@@ -161,18 +162,8 @@ class UserController {
             if (statusCode !== 200) {
                 return res.status(500).json({ error_msg: 'Internal server error' });
             }
-            const filteredSuggestions = suggestions.reduce(
-                (acc: Array<{ text: string; doc: UserAttributes }>, { options }) => {
-                    const filteredOptions = options.map(({ text, _source }) => ({
-                        text,
-                        doc: UserController.filterOutputKeys(_source),
-                    }));
-                    return [...acc, ...filteredOptions];
-                },
-                []
-            );
             return res.send({
-                suggestions: filteredSuggestions,
+                suggestions: UserController.filterSuggestionsKeys(suggestions),
             });
         } catch (error) {
             console.error(error);
