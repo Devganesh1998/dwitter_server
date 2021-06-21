@@ -3,9 +3,9 @@ import { HashTagAttributes } from '../../pg-database/models/interfaces/Hashtag';
 import { models, db } from '../../pg-database/models';
 
 export default class AuthService {
-    static async getHashtags(hashtags: string[]): Promise<Record<string, any>> {
+    static async getValidHashtags(hashtags: string[]): Promise<string[]> {
         const result =
-            (await db.query(
+            ((await db.query(
                 'SELECT "hashtag" from hashtags WHERE "hashtag" IN (:hashtags) LIMIT :limit',
                 {
                     replacements: {
@@ -14,8 +14,8 @@ export default class AuthService {
                     },
                     type: QueryTypes.SELECT,
                 }
-            )) || [];
-        return result;
+            )) as Array<{ hashtag: string }>) || [];
+        return result.map(({ hashtag }: { hashtag: string }) => hashtag);
     }
 
     static async createHashTag({
