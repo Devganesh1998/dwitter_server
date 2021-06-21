@@ -3,7 +3,7 @@ import getRedisClient from '../../redis-cache';
 
 const redisClient = getRedisClient();
 
-const autoSessionRefresh = async (
+const authCheckMiddleware = async (
     req: Request & {
         user?: {
             userId: string;
@@ -53,4 +53,4 @@ const autoSessionRefresh = async (
     }
 };
 
-export default autoSessionRefresh;
+export default authCheckMiddleware;

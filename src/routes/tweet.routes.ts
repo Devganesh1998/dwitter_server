@@ -1,10 +1,13 @@
 import { Router } from 'express';
-import { ControllerArgs } from '../../types';
+import { AuthenticatedControllerArgs } from '../../types';
 import TweetController from '../controller/tweet.controller';
+import authCheckMiddleware from '../customMiddlewares/authCheckMiddleware';
 
 const router = Router();
 
-router.post('/', (...args: ControllerArgs) => TweetController.create(...args));
+router.post('/', authCheckMiddleware, (...args: AuthenticatedControllerArgs) =>
+    TweetController.create(...args)
+);
 // router
 //     .route('/:id')
 //     .get((...args: ControllerArgs) => TweetController.get(...args))

@@ -2,6 +2,25 @@ import { Request, Response, NextFunction } from 'express';
 
 export type ControllerArgs = [_req: Request, res: Response, _next: NextFunction];
 
+export type AuthenticatedRequest = Request & {
+    user?: {
+        userId: string;
+        email: string;
+        phoneNo: string;
+        userName: string;
+        accountStatus: string;
+        accountType: string;
+        userType: string;
+        isVerified: boolean;
+    };
+};
+
+export type AuthenticatedControllerArgs = [
+    _req: AuthenticatedRequest,
+    res: Response,
+    _next: NextFunction
+];
+
 export type SuggestionResultOption<T> = {
     text: string;
     _index: string;
