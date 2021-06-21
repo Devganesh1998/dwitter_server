@@ -2,10 +2,11 @@ import { Router } from 'express';
 import { AuthenticatedControllerArgs } from '../../types';
 import TweetController from '../controller/tweet.controller';
 import authCheckMiddleware from '../customMiddlewares/authCheckMiddleware';
+import autoSessionRefresh from '../customMiddlewares/autoSessionRefresh';
 
 const router = Router();
 
-router.post('/', authCheckMiddleware, (...args: AuthenticatedControllerArgs) =>
+router.post('/', authCheckMiddleware, autoSessionRefresh, (...args: AuthenticatedControllerArgs) =>
     TweetController.create(...args)
 );
 // router
