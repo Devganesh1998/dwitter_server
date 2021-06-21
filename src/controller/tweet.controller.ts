@@ -1,5 +1,6 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Response } from 'express';
 import TweetService from '../services/tweet.service';
+import { AuthenticatedRequest } from '../../types';
 
 class TweetController {
     private service: typeof TweetService;
@@ -8,13 +9,18 @@ class TweetController {
         this.service = service;
     }
 
-    async create(req: Request, res: Response, _next: NextFunction) {
+    async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const { tweet }: { tweet: string } = req.body;
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const { userId } = userData;
             const results = await this.service.createTweet({
                 tweet,
                 likes: 0,
-                userId: '32f4cafa-3d75-4b5f-9438-fa8fbaf61032',
+                userId,
             });
             res.send({ tweet: results });
         } catch (error) {
