@@ -3,15 +3,23 @@ import TweetService from '../services/tweet.service';
 import HashTagService from '../services/hashtag.service';
 import { AuthenticatedRequest } from '../../types';
 import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
+import TweetHashTagService from '../services/tweetHashtag.service';
 
 class TweetController {
     private service: typeof TweetService;
 
     private hashTagService: typeof HashTagService;
 
-    constructor(service: typeof TweetService, hashTagService: typeof HashTagService) {
+    private tweetHashTagService: typeof TweetHashTagService;
+
+    constructor(
+        service: typeof TweetService,
+        hashTagService: typeof HashTagService,
+        tweetHashtagService: typeof TweetHashTagService
+    ) {
         this.service = service;
         this.hashTagService = hashTagService;
+        this.tweetHashTagService = tweetHashtagService;
     }
 
     async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
@@ -40,8 +48,13 @@ class TweetController {
                 ),
             ];
             const results = await Promise.all(promises);
-            const tweetResult = results[0] as TweetAttributes;
-            res.send({ tweet, userId, hashTagResults, tweetResult });
+            const tweetData = results[0] as TweetAttributes;
+            const { tweetId, userId: tweetUserId, ...restTweetData } = tweetData;
+            const associatePromises = hashtags.map((hashtag) =>
+                this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
+            );
+            await Promise.all(associatePromises);
+            res.send({ tweet: { tweetId, ...restTweetData }, hashtags });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
@@ -49,4 +62,4 @@ class TweetController {
     }
 }
 
-export default new TweetController(TweetService, HashTagService);
+export default new TweetController(TweetService, HashTagService, TweetHashTagService);

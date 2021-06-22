@@ -7,11 +7,12 @@ export default class TweetService {
         likes,
         userId,
     }: Omit<TweetAttributes, 'tweetId'> & { userId: string }): Promise<TweetAttributes> {
-        const results = (await models.Tweet.create({
+        const cursor = await models.Tweet.create({
             tweet,
             likes,
             userId,
-        })) as unknown as TweetAttributes;
-        return results;
+        });
+        const result = cursor.toJSON() as unknown as TweetAttributes;
+        return result;
     }
 }
