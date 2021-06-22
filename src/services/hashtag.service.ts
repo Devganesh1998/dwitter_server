@@ -2,7 +2,7 @@ import { QueryTypes } from 'sequelize';
 import { HashTagAttributes } from '../../pg-database/models/interfaces/Hashtag';
 import { models, db } from '../../pg-database/models';
 
-export default class AuthService {
+export default class HashTagService {
     static async getValidHashtags(hashtags: string[]): Promise<string[]> {
         const result =
             ((await db.query(

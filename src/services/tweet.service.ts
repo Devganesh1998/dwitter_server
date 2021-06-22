@@ -1,7 +1,7 @@
 import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
 import { models } from '../../pg-database/models';
 
-export default class AuthService {
+export default class TweetService {
     static async createTweet({
         tweet,
         likes,
