@@ -24,12 +24,13 @@ export default class HashTagService {
         description,
         createdBy,
     }: HashTagAttributes & { createdBy: string }): Promise<HashTagAttributes> {
-        const results = (await models.HashTag.create({
+        const cursor = await models.HashTag.create({
             hashtag,
             category,
             description,
             createdBy,
-        })) as unknown as HashTagAttributes;
+        });
+        const results = cursor.toJSON as unknown as HashTagAttributes;
         return results;
     }
 }

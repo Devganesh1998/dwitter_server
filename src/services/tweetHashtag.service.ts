@@ -9,10 +9,11 @@ export default class TweetHashTagService {
         tweetId: string;
         hashtag: string;
     }): Promise<TweetHashTagAttributes> {
-        const result = (await models.TweetHashTag.create({
+        const cursor = await models.TweetHashTag.create({
             hashtag,
             tweetId,
-        })) as unknown as TweetHashTagAttributes;
+        });
+        const result = cursor.toJSON() as TweetHashTagAttributes;
         return result;
     }
 }

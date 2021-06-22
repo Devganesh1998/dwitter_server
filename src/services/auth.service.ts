@@ -67,8 +67,8 @@ export default class AuthService {
         posterImgUrl,
         latestClientIp,
         latestUserAgent,
-    }: Omit<UserAttributes, 'userId'> & { userId?: string }): Promise<Record<string, any>> {
-        const results = await models.User.create({
+    }: Omit<UserAttributes, 'userId'> & { userId?: string }): Promise<UserAttributes> {
+        const cursor = await models.User.create({
             userId,
             name,
             userName,
@@ -91,6 +91,7 @@ export default class AuthService {
             latestUserAgent,
             latestClientIp,
         });
+        const results = cursor.toJSON() as UserAttributes;
         return results;
     }
 }
