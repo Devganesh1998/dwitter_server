@@ -9,7 +9,7 @@ export default class AuthService {
                 'SELECT "hashtag" from hashtags WHERE "hashtag" IN (:hashtags) LIMIT :limit',
                 {
                     replacements: {
-                        hashtags: hashtags.join("','"),
+                        hashtags,
                         limit: hashtags.length,
                     },
                     type: QueryTypes.SELECT,
@@ -23,8 +23,13 @@ export default class AuthService {
         category,
         description,
         createdBy,
-    }: HashTagAttributes & { createdBy: string }): Promise<Record<string, any>> {
-        const results = await models.HashTag.create({ hashtag, category, description, createdBy });
+    }: HashTagAttributes & { createdBy: string }): Promise<HashTagAttributes> {
+        const results = (await models.HashTag.create({
+            hashtag,
+            category,
+            description,
+            createdBy,
+        })) as unknown as HashTagAttributes;
         return results;
     }
 }

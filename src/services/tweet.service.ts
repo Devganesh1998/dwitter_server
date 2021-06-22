@@ -6,8 +6,12 @@ export default class AuthService {
         tweet,
         likes,
         userId,
-    }: Omit<TweetAttributes, 'tweetId'> & { userId: string }): Promise<Record<string, any>> {
-        const results = await models.Tweet.create({ tweet, likes, userId });
+    }: Omit<TweetAttributes, 'tweetId'> & { userId: string }): Promise<TweetAttributes> {
+        const results = (await models.Tweet.create({
+            tweet,
+            likes,
+            userId,
+        })) as unknown as TweetAttributes;
         return results;
     }
 }
