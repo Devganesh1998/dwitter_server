@@ -53,8 +53,27 @@ class TweetController {
             const associatePromises = hashtags.map((hashtag) =>
                 this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
             );
-            await Promise.all(associatePromises);
-            res.send({ tweet: { tweetId, ...restTweetData }, hashtags });
+            const tweetHashtagAssociations = await Promise.all(associatePromises);
+            if (tweetHashtagAssociations.length >= hashtags.length) {
+                return res.send({
+                    tweet: { tweetId, ...restTweetData },
+                    hashtags,
+                });
+            }
+            const missedHashTags = hashtags.filter(
+                (hashtag) =>
+                    !tweetHashtagAssociations
+                        .map(({ hashtag: tweetHashtag }) => tweetHashtag)
+                        .includes(hashtag)
+            );
+            const missedHashTagsPromises = missedHashTags.map((hashtag) =>
+                this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
+            );
+            await Promise.all(missedHashTagsPromises);
+            res.send({
+                tweet: { tweetId, ...restTweetData },
+                hashtags,
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
