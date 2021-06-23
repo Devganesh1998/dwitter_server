@@ -60,19 +60,21 @@ class TweetController {
             const tweetData = results[0] as TweetAttributes;
             const { tweetId, userId: tweetUserId, ...restTweetData } = tweetData;
             const tweetHashtags = hashtags.map((hashtag) => ({ hashtag, tweetId }));
-            const tweetHashtagAssociations =
-                await this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags);
-            const userAssociatePromises = userTags.map((userName) =>
-                this.tweetUserService.associateTweetUser({ userName, tweetId })
-            );
-            const tweetUserAssociations = await Promise.all(userAssociatePromises);
+            const tweetUserTags = userTags.map((userTag) => ({ userName: userTag, tweetId }));
+            const [tweetHashtagAssociations, tweetUserAssociations] = await Promise.all([
+                this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags),
+                this.tweetUserService.associateTweetUser__bulk(tweetUserTags),
+            ]);
             res.send({
                 tweet: { tweetId, ...restTweetData },
                 hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
-                tweetUserAssociations,
+                userTags: tweetUserAssociations.map(
+                    ({ userId: tweetUserIdItera }) => tweetUserIdItera
+                ),
             });
         } catch (error) {
-            console.error(error);
+            const { message }: { message: string } = error;
+            console.error({ message });
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
