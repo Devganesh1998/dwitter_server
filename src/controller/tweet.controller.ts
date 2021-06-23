@@ -66,26 +66,9 @@ class TweetController {
                 this.tweetUserService.associateTweetUser({ userName, tweetId })
             );
             const tweetUserAssociations = await Promise.all(userAssociatePromises);
-            if (tweetHashtagAssociations.length >= hashtags.length) {
-                return res.send({
-                    tweet: { tweetId, ...restTweetData },
-                    hashtags,
-                    tweetUserAssociations,
-                });
-            }
-            const missedHashTags = hashtags.filter(
-                (hashtag) =>
-                    !tweetHashtagAssociations
-                        .map(({ hashtag: tweetHashtag }) => tweetHashtag)
-                        .includes(hashtag)
-            );
-            const missedHashTagsPromises = missedHashTags.map((hashtag) =>
-                this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
-            );
-            await Promise.all(missedHashTagsPromises);
             res.send({
                 tweet: { tweetId, ...restTweetData },
-                hashtags,
+                hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
                 tweetUserAssociations,
             });
         } catch (error) {
