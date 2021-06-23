@@ -4,6 +4,7 @@ import HashTagService from '../services/hashtag.service';
 import { AuthenticatedRequest } from '../../types';
 import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
 import TweetHashTagService from '../services/tweetHashtag.service';
+import TweetUserService from '../services/tweetUserTag.service';
 
 class TweetController {
     private service: typeof TweetService;
@@ -12,19 +13,27 @@ class TweetController {
 
     private tweetHashTagService: typeof TweetHashTagService;
 
+    private tweetUserService: typeof TweetUserService;
+
     constructor(
         service: typeof TweetService,
         hashTagService: typeof HashTagService,
-        tweetHashtagService: typeof TweetHashTagService
+        tweetHashtagService: typeof TweetHashTagService,
+        tweetUserService: typeof TweetUserService
     ) {
         this.service = service;
         this.hashTagService = hashTagService;
         this.tweetHashTagService = tweetHashtagService;
+        this.tweetUserService = tweetUserService;
     }
 
     async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
-            const { tweet, hashtags }: { tweet: string; hashtags: string[] } = req.body;
+            const {
+                tweet,
+                hashtags = [],
+                userTags = [],
+            }: { tweet: string; hashtags: string[]; userTags: string[] } = req.body;
             const userData = req.user;
             if (!userData) {
                 return res.sendStatus(401);
@@ -50,14 +59,19 @@ class TweetController {
             const results = await Promise.all(promises);
             const tweetData = results[0] as TweetAttributes;
             const { tweetId, userId: tweetUserId, ...restTweetData } = tweetData;
-            const associatePromises = hashtags.map((hashtag) =>
+            const tweetAssociatePromises = hashtags.map((hashtag) =>
                 this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
             );
-            const tweetHashtagAssociations = await Promise.all(associatePromises);
+            const userAssociatePromises = userTags.map((userName) =>
+                this.tweetUserService.associateTweetUser({ userId: userName, tweetId })
+            );
+            const tweetHashtagAssociations = await Promise.all(tweetAssociatePromises);
+            const tweetUserAssociations = await Promise.all(userAssociatePromises);
             if (tweetHashtagAssociations.length >= hashtags.length) {
                 return res.send({
                     tweet: { tweetId, ...restTweetData },
                     hashtags,
+                    tweetUserAssociations,
                 });
             }
             const missedHashTags = hashtags.filter(
@@ -73,6 +87,7 @@ class TweetController {
             res.send({
                 tweet: { tweetId, ...restTweetData },
                 hashtags,
+                tweetUserAssociations,
             });
         } catch (error) {
             console.error(error);
@@ -81,4 +96,9 @@ class TweetController {
     }
 }
 
-export default new TweetController(TweetService, HashTagService, TweetHashTagService);
+export default new TweetController(
+    TweetService,
+    HashTagService,
+    TweetHashTagService,
+    TweetUserService
+);
