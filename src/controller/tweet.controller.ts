@@ -59,13 +59,12 @@ class TweetController {
             const results = await Promise.all(promises);
             const tweetData = results[0] as TweetAttributes;
             const { tweetId, userId: tweetUserId, ...restTweetData } = tweetData;
-            const tweetAssociatePromises = hashtags.map((hashtag) =>
-                this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
-            );
+            const tweetHashtags = hashtags.map((hashtag) => ({ hashtag, tweetId }));
+            const tweetHashtagAssociations =
+                await this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags);
             const userAssociatePromises = userTags.map((userName) =>
                 this.tweetUserService.associateTweetUser({ userName, tweetId })
             );
-            const tweetHashtagAssociations = await Promise.all(tweetAssociatePromises);
             const tweetUserAssociations = await Promise.all(userAssociatePromises);
             if (tweetHashtagAssociations.length >= hashtags.length) {
                 return res.send({
