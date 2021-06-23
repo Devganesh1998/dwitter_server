@@ -63,7 +63,7 @@ class TweetController {
                 this.tweetHashTagService.associateTweetHashtag({ hashtag, tweetId })
             );
             const userAssociatePromises = userTags.map((userName) =>
-                this.tweetUserService.associateTweetUser({ userId: userName, tweetId })
+                this.tweetUserService.associateTweetUser({ userName, tweetId })
             );
             const tweetHashtagAssociations = await Promise.all(tweetAssociatePromises);
             const tweetUserAssociations = await Promise.all(userAssociatePromises);
