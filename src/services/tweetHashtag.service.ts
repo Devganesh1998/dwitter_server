@@ -16,4 +16,17 @@ export default class TweetHashTagService {
         const result = cursor.toJSON() as TweetHashTagAttributes;
         return result;
     }
+
+    static async associateTweetHashtag__bulk(
+        tweetHashtags: Array<
+            Omit<TweetHashTagAttributes, 'tweetHashtagId'> & {
+                tweetId: string;
+                hashtag: string;
+            }
+        >
+    ): Promise<TweetHashTagAttributes[]> {
+        const cursor = await models.TweetHashTag.bulkCreate(tweetHashtags, { validate: true });
+        const result = cursor.map((doc) => doc.toJSON()) as TweetHashTagAttributes[];
+        return result;
+    }
 }
