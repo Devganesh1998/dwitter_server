@@ -27,6 +27,9 @@ export default class TweetUserService {
             }
         >
     ): Promise<TweetUserTagAttributes[]> {
+        if (!tweetUserTags.length) {
+            return [];
+        }
         const users = await UserService.getUserIdsFromUsernames(
             ...tweetUserTags.map(({ userName }) => userName)
         );

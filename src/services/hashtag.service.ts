@@ -4,6 +4,9 @@ import { models, db } from '../../pg-database/models';
 
 export default class HashTagService {
     static async getValidHashtags(hashtags: string[]): Promise<string[]> {
+        if (!hashtags.length) {
+            return [];
+        }
         const result =
             ((await db.query(
                 'SELECT "hashtag" from hashtags WHERE "hashtag" IN (:hashtags) LIMIT :limit',

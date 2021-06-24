@@ -25,6 +25,9 @@ export default class TweetHashTagService {
             }
         >
     ): Promise<TweetHashTagAttributes[]> {
+        if (!tweetHashtags.length) {
+            return [];
+        }
         const cursor = await models.TweetHashTag.bulkCreate(tweetHashtags, { validate: true });
         const result = cursor.map((doc) => doc.toJSON()) as TweetHashTagAttributes[];
         return result;
