@@ -73,8 +73,34 @@ class TweetController {
                 ),
             });
         } catch (error) {
+            console.error(error);
             const { message }: { message: string } = error;
+            // eslint-disable-next-line no-console
             console.error({ message });
+            const [topic, data] = message.split(':');
+            if (topic === 'HANDLE_EXCEPTION') {
+                const [subject, subData] = data.split('?');
+                const parsedData = subData
+                    .split('&')
+                    .map((query) => {
+                        const [field, value] = query.split('=');
+                        const values = value.split(',');
+                        return { [field]: values };
+                    })
+                    .reduce((acc, curr) => ({ ...acc, ...curr }), {});
+                switch (subject) {
+                    case 'INVALID_USERNAME': {
+                        res.status(400).json({
+                            error_msg: 'Invalid userTags provided',
+                            invalidUserNames: parsedData,
+                        });
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+            }
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
