@@ -27,14 +27,26 @@ export default class TweetUserService {
             }
         >
     ): Promise<TweetUserTagAttributes[]> {
-        const userIds = await UserService.getUserIdsFromUsernames(
+        const users = await UserService.getUserIdsFromUsernames(
             ...tweetUserTags.map(({ userName }) => userName)
         );
+        const validUserNames = users.map(({ userName }) => userName);
+        const invalidUserNames = tweetUserTags
+            .filter(({ userName }) => !validUserNames.includes(userName))
+            .map(({ userName }) => userName);
+        if (invalidUserNames.length) {
+            throw Error(
+                `HANDLE_EXCEPTION:INVALID_USERNAME?userNames=${invalidUserNames.join(',')}`
+            );
+        }
         const cursor = await models.TweetUserTag.bulkCreate(
-            tweetUserTags.map(({ userName, ...doc }, index) => {
+            tweetUserTags.map(({ userName, ...doc }) => {
+                const [{ userId }] = users.filter(
+                    ({ userName: currUserName }) => currUserName === userName
+                );
                 return {
                     ...doc,
-                    userId: userIds[index]?.userId,
+                    userId,
                 };
             }),
             { validate: true }
