@@ -30,6 +30,7 @@ const initializeConsumption = async () => {
                 consumer.subscribe({ topic: 'user-login', fromBeginning: true }),
                 consumer.subscribe({ topic: 'user-register', fromBeginning: true }),
                 consumer.subscribe({ topic: 'session-refresh', fromBeginning: true }),
+                consumer.subscribe({ topic: 'tweet-create', fromBeginning: true }),
             ]);
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
@@ -127,6 +128,40 @@ const initializeConsumption = async () => {
                                     SESSION_EXPIRE_IN_S
                                 ),
                             ]);
+                            break;
+                        }
+                        case 'tweet-create': {
+                            const {
+                                tweet: { tweet, tweetId, likes, userId, createdAt, updatedAt },
+                                hashtags,
+                                userTags,
+                            }: {
+                                tweet: {
+                                    tweetId: string;
+                                    tweet: string;
+                                    likes: number;
+                                    userId: string;
+                                    createdAt: string;
+                                    updatedAt: string;
+                                };
+                                hashtags: string[];
+                                userTags: string[];
+                            } = parsedValue;
+                            const tweetData = {
+                                tweet,
+                                tweetId,
+                                likes,
+                                createdBy: userId,
+                                createdAt,
+                                updatedAt,
+                                hashtags,
+                                userTags,
+                            };
+                            await elasticClient.index({
+                                index: 'tweets',
+                                id: tweetId,
+                                body: tweetData,
+                            });
                             break;
                         }
                         default:
