@@ -1,10 +1,12 @@
 import { NextFunction, Response } from 'express';
+import { Producer } from 'kafkajs';
 import TweetService from '../services/tweet.service';
 import HashTagService from '../services/hashtag.service';
 import { AuthenticatedRequest } from '../../types';
 import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
 import TweetHashTagService from '../services/tweetHashtag.service';
 import TweetUserService from '../services/tweetUserTag.service';
+import KafkaProducer from '../utils/getKafkaProducer';
 
 class TweetController {
     private service: typeof TweetService;
@@ -14,6 +16,8 @@ class TweetController {
     private tweetHashTagService: typeof TweetHashTagService;
 
     private tweetUserService: typeof TweetUserService;
+
+    private producer: Producer;
 
     constructor(
         service: typeof TweetService,
@@ -25,6 +29,7 @@ class TweetController {
         this.hashTagService = hashTagService;
         this.tweetHashTagService = tweetHashtagService;
         this.tweetUserService = tweetUserService;
+        this.producer = KafkaProducer;
     }
 
     async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
@@ -65,6 +70,17 @@ class TweetController {
                 this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags),
                 this.tweetUserService.associateTweetUser__bulk(tweetUserTags),
             ]);
+            const tweetDataTokf = {
+                tweet: tweetData,
+                hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
+                userTags: tweetUserAssociations.map(
+                    ({ userName: tweetUserUserName }) => tweetUserUserName
+                ),
+            };
+            await this.producer.send({
+                topic: 'tweet-create',
+                messages: [{ value: JSON.stringify(tweetDataTokf) }],
+            });
             res.send({
                 tweet: { tweetId, ...restTweetData },
                 hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
