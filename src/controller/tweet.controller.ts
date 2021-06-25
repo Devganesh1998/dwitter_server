@@ -69,7 +69,7 @@ class TweetController {
                 tweet: { tweetId, ...restTweetData },
                 hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
                 userTags: tweetUserAssociations.map(
-                    ({ userId: tweetUserIdItera }) => tweetUserIdItera
+                    ({ userName: tweetUserUserName }) => tweetUserUserName
                 ),
             });
         } catch (error) {

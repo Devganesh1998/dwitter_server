@@ -26,7 +26,7 @@ export default class TweetUserService {
                 userName: string;
             }
         >
-    ): Promise<TweetUserTagAttributes[]> {
+    ): Promise<Array<TweetUserTagAttributes & { userName: string | undefined }>> {
         if (!tweetUserTags.length) {
             return [];
         }
@@ -55,6 +55,15 @@ export default class TweetUserService {
             { validate: true }
         );
         const result = cursor.map((doc) => doc.toJSON()) as TweetUserTagAttributes[];
-        return result;
+        const tweetUsers = result.map(({ userId, ...doc }) => {
+            const { userName } =
+                users.find(({ userId: currUserId }) => currUserId === userId) || {};
+            return {
+                userName,
+                userId,
+                ...doc,
+            };
+        });
+        return tweetUsers;
     }
 }
