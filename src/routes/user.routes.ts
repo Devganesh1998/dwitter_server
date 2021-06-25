@@ -17,7 +17,8 @@ router.get(
             .bail()
             .isString()
             .bail()
-            .trim(),
+            .trim()
+            .exists({ checkFalsy: true }),
     ],
     verifyValidations,
     (...args: ControllerArgs) => UserController.availability(...args)
@@ -32,8 +33,15 @@ router.post(
             .isString()
             .bail()
             .custom((value) => enumValidator(value, USER_AUTOCOMPLETE_FIELDS, 'fieldType'))
-            .trim(),
-        body('prefix').exists({ checkFalsy: true }).bail().isString().bail().trim(),
+            .trim()
+            .exists({ checkFalsy: true }),
+        body('prefix')
+            .exists({ checkFalsy: true })
+            .bail()
+            .isString()
+            .bail()
+            .trim()
+            .exists({ checkFalsy: true }),
     ],
     verifyValidations,
     autoSessionRefresh,

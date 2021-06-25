@@ -14,9 +14,21 @@ router.post(
     [
         oneOf(
             [
-                body('email').exists({ checkFalsy: true }).bail().isEmail().bail().trim(),
+                body('email')
+                    .exists({ checkFalsy: true })
+                    .bail()
+                    .isEmail()
+                    .bail()
+                    .trim()
+                    .exists({ checkFalsy: true }),
                 body('phoneNo').exists({ checkFalsy: true }).bail().isInt(),
-                body('userName').exists({ checkFalsy: true }).bail().isString().bail().trim(),
+                body('userName')
+                    .exists({ checkFalsy: true })
+                    .bail()
+                    .isString()
+                    .bail()
+                    .trim()
+                    .exists({ checkFalsy: true }),
             ],
             'Either email, userName or phoneNo is required to login'
         ),
@@ -30,13 +42,31 @@ router.post(
     [
         oneOf(
             [
-                body('email').exists({ checkFalsy: true }).bail().isEmail().bail().trim(),
+                body('email')
+                    .exists({ checkFalsy: true })
+                    .bail()
+                    .isEmail()
+                    .bail()
+                    .trim()
+                    .exists({ checkFalsy: true }),
                 body('phoneNo').exists({ checkFalsy: true }).bail().isInt(),
             ],
             'Either email or phoneNo is required to register'
         ),
-        body('password').exists({ checkFalsy: true }).bail().isString().bail().trim(),
-        body('userName').exists({ checkFalsy: true }).bail().isString().bail().trim(),
+        body('password')
+            .exists({ checkFalsy: true })
+            .bail()
+            .isString()
+            .bail()
+            .trim()
+            .exists({ checkFalsy: true }),
+        body('userName')
+            .exists({ checkFalsy: true })
+            .bail()
+            .isString()
+            .bail()
+            .trim()
+            .exists({ checkFalsy: true }),
         body('gender')
             .optional({ checkFalsy: true })
             .custom((value) => enumValidator(value, GENDER, 'gender'))

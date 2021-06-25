@@ -17,7 +17,8 @@ router.post(
             .bail()
             .isString()
             .bail()
-            .trim(),
+            .trim()
+            .exists({ checkFalsy: true }),
         body(
             'hashtags',
             'hashtags field is required and should be type as array of strings, but can be empty array'
