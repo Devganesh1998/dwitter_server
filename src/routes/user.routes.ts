@@ -27,7 +27,12 @@ router.get(
 router.post(
     '/autocomplete',
     [
-        body('fieldType')
+        body(
+            'fieldType',
+            `fieldType field is required and should be in type string and possible values are ${Object.keys(
+                USER_AUTOCOMPLETE_FIELDS
+            ).join(',')}`
+        )
             .exists({ checkFalsy: true })
             .bail()
             .isString()
@@ -35,7 +40,7 @@ router.post(
             .custom((value) => enumValidator(value, USER_AUTOCOMPLETE_FIELDS, 'fieldType'))
             .trim()
             .exists({ checkFalsy: true }),
-        body('prefix')
+        body('prefix', 'prefix field is required and should be in type string')
             .exists({ checkFalsy: true })
             .bail()
             .isString()
