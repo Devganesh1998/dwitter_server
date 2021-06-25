@@ -14,15 +14,21 @@ router.post(
     [
         oneOf(
             [
-                body('email')
+                body(
+                    'email',
+                    'email field is required and should be in type string and should be in a valid email format'
+                )
                     .exists({ checkFalsy: true })
                     .bail()
                     .isEmail()
                     .bail()
                     .trim()
                     .exists({ checkFalsy: true }),
-                body('phoneNo').exists({ checkFalsy: true }).bail().isInt(),
-                body('userName')
+                body('phoneNo', 'phoneNo field is required and should be in type integer')
+                    .exists({ checkFalsy: true })
+                    .bail()
+                    .isInt(),
+                body('userName', 'userName field is required and should be in type string')
                     .exists({ checkFalsy: true })
                     .bail()
                     .isString()
@@ -32,7 +38,12 @@ router.post(
             ],
             'Either email, userName or phoneNo is required to login'
         ),
-        body('password').exists({ checkFalsy: true }).bail().isString().bail().trim(),
+        body('password', 'password field is required and should be in type string')
+            .exists({ checkFalsy: true })
+            .bail()
+            .isString()
+            .bail()
+            .trim(),
     ],
     verifyValidations,
     (...args: ControllerArgs) => AuthController.login(...args)
@@ -42,7 +53,10 @@ router.post(
     [
         oneOf(
             [
-                body('email')
+                body(
+                    'email',
+                    'email field is required and should be in type string and should be in a valid email format'
+                )
                     .exists({ checkFalsy: true })
                     .bail()
                     .isEmail()
@@ -53,31 +67,59 @@ router.post(
             ],
             'Either email or phoneNo is required to register'
         ),
-        body('password')
+        body('password', 'phoneNo field is required and should be in type integer')
             .exists({ checkFalsy: true })
             .bail()
             .isString()
             .bail()
             .trim()
             .exists({ checkFalsy: true }),
-        body('userName')
+        body('userName', 'userName field is required and should be in type string')
             .exists({ checkFalsy: true })
             .bail()
             .isString()
             .bail()
             .trim()
             .exists({ checkFalsy: true }),
-        body('gender')
+        body(
+            'gender',
+            `gender field is required and should be in type string and possible values are ${Object.keys(
+                GENDER
+            ).join(',')}`
+        )
             .optional({ checkFalsy: true })
             .custom((value) => enumValidator(value, GENDER, 'gender'))
             .trim(),
-        body('description').optional({ checkFalsy: true }).isString().trim(),
-        body('countryCode').optional({ checkFalsy: true }).isString().trim(),
-        body('age').optional({ checkFalsy: true }).isInt(),
-        body('name').optional({ checkFalsy: true }).isString().trim(),
-        body('dateOfBirth').optional({ checkFalsy: true }).isString().isDate().trim(),
-        body('profileImgUrl').optional({ checkFalsy: true }).isString().isURL().trim(),
-        body('posterImgUrl').optional({ checkFalsy: true }).isString().isURL().trim(),
+        body('description', 'description field is optional but should be in type string')
+            .optional({ checkFalsy: true })
+            .isString()
+            .trim(),
+        body('countryCode', 'countryCode field is optional but should be in type string')
+            .optional({ checkFalsy: true })
+            .isString()
+            .trim(),
+        body('age', 'age field is optional but should be in type integer')
+            .optional({ checkFalsy: true })
+            .isInt(),
+        body('name', 'name field is optional but should be in type string')
+            .optional({ checkFalsy: true })
+            .isString()
+            .trim(),
+        body('dateOfBirth', 'dateOfBirth field is optional but should be in type date')
+            .optional({ checkFalsy: true })
+            .isString()
+            .isDate()
+            .trim(),
+        body('profileImgUrl', 'profileImgUrl field is optional but should be in type URL')
+            .optional({ checkFalsy: true })
+            .isString()
+            .isURL()
+            .trim(),
+        body('posterImgUrl', 'posterImgUrl field is optional but should be in type URL')
+            .optional({ checkFalsy: true })
+            .isString()
+            .isURL()
+            .trim(),
     ],
     verifyValidations,
     (...args: ControllerArgs) => AuthController.register(...args)
