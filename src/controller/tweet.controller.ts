@@ -126,7 +126,9 @@ class TweetController {
             const { tweetId } = req.params;
             const tweetData = await this.service.findOneById(tweetId);
             if (!tweetData) {
-                res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
+                return res
+                    .status(404)
+                    .json({ error_msg: 'Tweet was not found with given tweetId' });
             }
             res.send({ tweet: tweetData });
         } catch (error) {
