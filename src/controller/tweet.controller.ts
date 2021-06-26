@@ -121,11 +121,14 @@ class TweetController {
         }
     }
 
-    // eslint-disable-next-line class-methods-use-this
     async findOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const { tweetId } = req.params;
-            res.send({ tweetId });
+            const tweetData = await this.service.findOneById(tweetId);
+            if (!tweetData) {
+                res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
+            }
+            res.send({ tweet: tweetData });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
