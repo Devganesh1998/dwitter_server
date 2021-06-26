@@ -15,4 +15,13 @@ export default class TweetService {
         const result = cursor.toJSON() as unknown as TweetAttributes;
         return result;
     }
+
+    static async findOneById(tweetId: string): Promise<TweetAttributes | boolean> {
+        const cursor = await models.Tweet.findByPk(tweetId);
+        if (cursor) {
+            const result = cursor.toJSON() as unknown as TweetAttributes;
+            return result;
+        }
+        return false;
+    }
 }
