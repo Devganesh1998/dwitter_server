@@ -19,7 +19,7 @@ export default class TweetService {
 
     static async findOneById(
         tweetId: string
-    ): Promise<(TweetAttributes & { createdBy: string }) | boolean> {
+    ): Promise<{ tweet: TweetAttributes & { createdBy: string }; hashtags: string[] } | undefined> {
         const [tweetData] = (await db.query(
             'SELECT t."tweetId", t."tweet", t."likes", t."createdAt", t."updatedAt", u."userName" as "createdBy" from "tweets" as t JOIN "users" as u ON u."userId" = t."userId" WHERE "tweetId" = :tweetId',
             {
@@ -29,9 +29,22 @@ export default class TweetService {
                 type: QueryTypes.SELECT,
             }
         )) as Array<TweetAttributes & { createdBy: string }>;
+
+        const hashtagResult = (await db.query(
+            'SELECT th."hashtag" from "tweet_hashtags" as th JOIN "tweets" as t ON t."tweetId" = th."tweetId" WHERE t."tweetId" = :tweetId',
+            {
+                replacements: {
+                    tweetId,
+                },
+                type: QueryTypes.SELECT,
+            }
+        )) as Array<{ hashtag: string }>;
         if (tweetData) {
-            return tweetData;
+            return {
+                tweet: tweetData,
+                hashtags: hashtagResult.map(({ hashtag }) => hashtag),
+            };
         }
-        return false;
+        return undefined;
     }
 }
