@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { AuthenticatedControllerArgs } from '../../types';
 import TweetController from '../controller/tweet.controller';
 import authCheckMiddleware from '../customMiddlewares/authCheckMiddleware';
@@ -38,9 +38,26 @@ router.post(
     autoSessionRefresh,
     (...args: AuthenticatedControllerArgs) => TweetController.create(...args)
 );
-// router
-//     .route('/:id')
-//     .get((...args: ControllerArgs) => TweetController.get(...args))
+router
+    .route('/:tweetId')
+    .get(
+        authCheckMiddleware,
+        [
+            param(
+                'tweetId',
+                'Please provide tweetId as param, it is required and should be in UUID format'
+            )
+                .exists({ checkFalsy: true })
+                .bail()
+                .isUUID()
+                .bail()
+                .trim()
+                .exists({ checkFalsy: true }),
+        ],
+        verifyValidations,
+        autoSessionRefresh,
+        (...args: AuthenticatedControllerArgs) => TweetController.findOne(...args)
+    );
 //     .put((...args: ControllerArgs) => TweetController.update(...args))
 //     .delete((...args: ControllerArgs) => TweetController.delete(...args));
 

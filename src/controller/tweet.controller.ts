@@ -120,6 +120,17 @@ class TweetController {
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
+
+    // eslint-disable-next-line class-methods-use-this
+    async findOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+        try {
+            const { tweetId } = req.params;
+            res.send({ tweetId });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error_msg: 'Internal server error' });
+        }
+    }
 }
 
 export default new TweetController(
