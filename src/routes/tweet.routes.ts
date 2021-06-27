@@ -57,8 +57,8 @@ router
         verifyValidations,
         autoSessionRefresh,
         (...args: AuthenticatedControllerArgs) => TweetController.findOne(...args)
-    );
-//     .put((...args: ControllerArgs) => TweetController.update(...args))
+    )
+    .put((...args: AuthenticatedControllerArgs) => TweetController.updateOne(...args));
 //     .delete((...args: ControllerArgs) => TweetController.delete(...args));
 
 export default router;
