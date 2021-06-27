@@ -19,30 +19,45 @@ export default class TweetService {
 
     static async findOneById(
         tweetId: string
-    ): Promise<{ tweet: TweetAttributes & { createdBy: string }; hashtags: string[] } | undefined> {
-        const [tweetData] = (await db.query(
-            'SELECT t."tweetId", t."tweet", t."likes", t."createdAt", t."updatedAt", u."userName" as "createdBy" from "tweets" as t JOIN "users" as u ON u."userId" = t."userId" WHERE "tweetId" = :tweetId',
-            {
-                replacements: {
-                    tweetId,
-                },
-                type: QueryTypes.SELECT,
-            }
-        )) as Array<TweetAttributes & { createdBy: string }>;
+    ): Promise<
+        | { tweet: TweetAttributes & { createdBy: string }; hashtags: string[]; userTags: string[] }
+        | undefined
+    > {
+        const [[tweetData], hashtagResult, usertagResult] = await Promise.all([
+            db.query(
+                'SELECT t."tweetId", t."tweet", t."likes", t."createdAt", t."updatedAt", u."userName" as "createdBy" from "tweets" as t JOIN "users" as u ON u."userId" = t."userId" WHERE "tweetId" = :tweetId',
+                {
+                    replacements: {
+                        tweetId,
+                    },
+                    type: QueryTypes.SELECT,
+                }
+            ) as unknown as Array<TweetAttributes & { createdBy: string }>,
+            db.query(
+                'SELECT th."hashtag" from "tweet_hashtags" as th JOIN "tweets" as t ON t."tweetId" = th."tweetId" WHERE t."tweetId" = :tweetId',
+                {
+                    replacements: {
+                        tweetId,
+                    },
+                    type: QueryTypes.SELECT,
+                }
+            ) as unknown as Array<{ hashtag: string }>,
+            db.query(
+                'SELECT u."userName" from "tweet_usertags" as tu JOIN "tweets" as t ON t."tweetId" = tu."tweetId" JOIN "users" as u ON u."userId" = tu."userId" WHERE t."tweetId" = :tweetId',
+                {
+                    replacements: {
+                        tweetId,
+                    },
+                    type: QueryTypes.SELECT,
+                }
+            ) as unknown as Array<{ userName: string }>,
+        ]);
 
-        const hashtagResult = (await db.query(
-            'SELECT th."hashtag" from "tweet_hashtags" as th JOIN "tweets" as t ON t."tweetId" = th."tweetId" WHERE t."tweetId" = :tweetId',
-            {
-                replacements: {
-                    tweetId,
-                },
-                type: QueryTypes.SELECT,
-            }
-        )) as Array<{ hashtag: string }>;
         if (tweetData) {
             return {
                 tweet: tweetData,
                 hashtags: hashtagResult.map(({ hashtag }) => hashtag),
+                userTags: usertagResult.map(({ userName }) => userName),
             };
         }
         return undefined;
