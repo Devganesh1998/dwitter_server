@@ -138,9 +138,10 @@ class TweetController {
     async updateOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const { tweetId } = req.params;
-            const { ...newTweetData } = req.body as Omit<TweetAttributes, 'tweetId'> & {
-                userId: string;
-            };
+            const { ...newTweetData } = req.body as Omit<
+                TweetAttributes,
+                'tweetId' | 'userId' | 'likes'
+            >;
             const {
                 rowsAffectedCount,
                 updatedTweet: {

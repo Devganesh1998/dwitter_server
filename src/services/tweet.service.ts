@@ -65,20 +65,18 @@ export default class TweetService {
 
     static async updateById(
         tweetId: string,
-        newTweetData: Omit<TweetAttributes, 'tweetId'>
+        newTweetData: Omit<TweetAttributes, 'tweetId' | 'userId' | 'likes'>
     ): Promise<{
         updatedTweet: { tweet: TweetAttributes; userTags: string[]; hashTags: string[] };
         rowsAffectedCount: number;
     }> {
-        const { tweet, likes, userId } = newTweetData;
+        const { tweet } = newTweetData;
         const [rowsAffectedCount, [cursor] = []] =
             (await models.Tweet.update(
                 {
                     tweet,
-                    likes,
-                    userId,
                 },
-                { validate: true, where: { tweetId }, returning: true }
+                { validate: true, where: { tweetId }, fields: ['tweet'], returning: true }
             )) || [];
         const tweetData = cursor?.toJSON() as unknown as TweetAttributes;
         return {
