@@ -134,6 +134,29 @@ class TweetController {
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
+
+    async updateOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+        try {
+            const { tweetId } = req.params;
+            const { ...newTweetData } = req.body as Omit<TweetAttributes, 'tweetId'> & {
+                userId: string;
+            };
+            const {
+                rowsAffectedCount,
+                updatedTweet: {
+                    tweet: { userId, ...restTweet } = {},
+                    ...restUpdatedTweetData
+                } = {},
+            } = await this.service.updateById(tweetId, newTweetData);
+            if (rowsAffectedCount) {
+                return res.send({ tweet: restTweet, ...restUpdatedTweetData });
+            }
+            res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error_msg: 'Internal server error' });
+        }
+    }
 }
 
 export default new TweetController(
