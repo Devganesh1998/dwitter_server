@@ -1,7 +1,9 @@
 import { NextFunction, Response } from 'express';
 import { Producer } from 'kafkajs';
+import { Client } from '@elastic/elasticsearch';
 import TweetService from '../services/tweet.service';
 import HashTagService from '../services/hashtag.service';
+import elasticClient from '../utils/getElasticClient';
 import { AuthenticatedRequest } from '../../types';
 import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
 import TweetHashTagService from '../services/tweetHashtag.service';
@@ -19,6 +21,8 @@ class TweetController {
 
     private producer: Producer;
 
+    private elastic: Client;
+
     constructor(
         service: typeof TweetService,
         hashTagService: typeof HashTagService,
@@ -30,6 +34,7 @@ class TweetController {
         this.tweetHashTagService = tweetHashtagService;
         this.tweetUserService = tweetUserService;
         this.producer = KafkaProducer;
+        this.elastic = elasticClient;
     }
 
     async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
@@ -142,10 +147,51 @@ class TweetController {
                 TweetAttributes,
                 'tweetId' | 'userId' | 'likes'
             >;
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const { userId } = userData;
+            const {
+                statusCode,
+                body: {
+                    hits: {
+                        hits: [{ fields: { createdBy: [tweetOwner] = [] } = {} } = {}] = [],
+                    } = {},
+                } = {},
+            }: {
+                statusCode: number | null;
+                body:
+                    | {
+                          hits:
+                              | { hits: Array<{ fields: { createdBy: string[] } }> }
+                              | Record<string, any>;
+                      }
+                    | Record<string, any>;
+            } = await this.elastic.search({
+                index: 'tweets',
+                body: {
+                    query: {
+                        term: {
+                            tweetId,
+                        },
+                    },
+                    _source: false,
+                    fields: ['createdBy'],
+                },
+            });
+            if (statusCode !== 200) {
+                return res.status(500).json({ error_msg: 'Internal server error' });
+            }
+            if (tweetOwner !== userId) {
+                return res.status(403).json({
+                    error_msg: 'Only Tweet owner can update the Tweet',
+                });
+            }
             const {
                 rowsAffectedCount,
                 updatedTweet: {
-                    tweet: { userId, ...restTweet } = {},
+                    tweet: { userId: reqBodyUserId, ...restTweet } = {},
                     ...restUpdatedTweetData
                 } = {},
             } = await this.service.updateById(tweetId, newTweetData);
