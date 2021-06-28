@@ -143,10 +143,11 @@ class TweetController {
     async updateOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const { tweetId } = req.params;
-            const { ...newTweetData } = req.body as Omit<
-                TweetAttributes,
-                'tweetId' | 'userId' | 'likes'
-            >;
+            const { tweet: newTweet, hashtags } = req.body as {
+                tweet: string;
+                hashtags: string[];
+                userTags: string[];
+            };
             const userData = req.user;
             if (!userData) {
                 return res.sendStatus(401);
@@ -190,13 +191,24 @@ class TweetController {
             }
             const {
                 rowsAffectedCount,
-                updatedTweet: {
-                    tweet: { userId: reqBodyUserId, ...restTweet } = {},
-                    ...restUpdatedTweetData
-                } = {},
-            } = await this.service.updateById(tweetId, newTweetData);
+                updatedTweet: { userId: reqBodyUserId, ...restTweet } = {},
+            } = await this.service.updateById(tweetId, { tweet: newTweet });
+
             if (rowsAffectedCount) {
-                return res.send({ tweet: restTweet, ...restUpdatedTweetData });
+                let updatedHashtags: Array<string> | undefined;
+                if (hashtags) {
+                    await this.tweetHashTagService.removeAssociateForTweetId(tweetId);
+                    const tweetHashtags = hashtags.map((hashtag) => ({ tweetId, hashtag }));
+                    const tweetHashtagAssociations =
+                        await this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags);
+                    updatedHashtags = tweetHashtagAssociations.map(
+                        ({ hashtag }) => hashtag
+                    ) as Array<string>;
+                }
+                return res.send({
+                    tweet: restTweet,
+                    ...(updatedHashtags ? { hashtags: updatedHashtags } : {}),
+                });
             }
             res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
         } catch (error) {
