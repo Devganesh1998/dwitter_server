@@ -32,4 +32,9 @@ export default class TweetHashTagService {
         const result = cursor.map((doc) => doc.toJSON()) as TweetHashTagAttributes[];
         return result;
     }
+
+    static async removeAssociateForTweetId(tweetId: string): Promise<number> {
+        const rowsAffected = await models.TweetHashTag.destroy({ where: { tweetId } });
+        return rowsAffected;
+    }
 }
