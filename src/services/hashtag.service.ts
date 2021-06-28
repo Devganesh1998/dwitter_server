@@ -36,4 +36,15 @@ export default class HashTagService {
         const results = cursor.toJSON as unknown as HashTagAttributes;
         return results;
     }
+
+    static async createHashTag__bulk(
+        hashtags: Array<HashTagAttributes & { createdBy: string }>
+    ): Promise<HashTagAttributes[]> {
+        if (!hashtags.length) {
+            return [];
+        }
+        const cursor = await models.HashTag.bulkCreate(hashtags);
+        const results = cursor.map((doc) => doc.toJSON()) as unknown as HashTagAttributes[];
+        return results;
+    }
 }
