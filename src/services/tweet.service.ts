@@ -67,7 +67,7 @@ export default class TweetService {
         tweetId: string,
         newTweetData: Omit<TweetAttributes, 'tweetId' | 'userId' | 'likes'>
     ): Promise<{
-        updatedTweet: { tweet: TweetAttributes; userTags: string[]; hashTags: string[] };
+        updatedTweet: TweetAttributes;
         rowsAffectedCount: number;
     }> {
         const { tweet } = newTweetData;
@@ -80,7 +80,7 @@ export default class TweetService {
             )) || [];
         const tweetData = cursor?.toJSON() as unknown as TweetAttributes;
         return {
-            updatedTweet: { tweet: tweetData, hashTags: [], userTags: [] },
+            updatedTweet: tweetData,
             rowsAffectedCount,
         };
     }

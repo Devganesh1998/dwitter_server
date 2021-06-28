@@ -78,19 +78,11 @@ router
                 .bail()
                 .trim()
                 .exists({ checkFalsy: true }),
-            body(
-                'hashtags',
-                'hashtags field is required and should be type as array of strings, but can be empty array'
-            )
-                .exists()
-                .bail()
+            body('hashtags', 'hashtags field should be type as array of strings')
+                .optional()
                 .isArray(),
-            body(
-                'userTags',
-                'userTags field is required and should be type as array of strings, but can be empty array'
-            )
-                .exists()
-                .bail()
+            body('userTags', 'userTags field should be type as array of strings')
+                .optional()
                 .isArray(),
         ],
         verifyValidations,
