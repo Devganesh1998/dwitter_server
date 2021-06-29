@@ -5,7 +5,6 @@ import TweetService from '../services/tweet.service';
 import HashTagService from '../services/hashtag.service';
 import elasticClient from '../utils/getElasticClient';
 import { AuthenticatedRequest } from '../../types';
-import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
 import TweetHashTagService from '../services/tweetHashtag.service';
 import TweetUserService from '../services/tweetUserTag.service';
 import KafkaProducer from '../utils/getKafkaProducer';
@@ -74,30 +73,15 @@ class TweetController {
                 return res.sendStatus(401);
             }
             const { userId } = userData;
-            const hashTagResults = await this.hashTagService.getValidHashtags(hashtags);
-            const invalidHashTags = hashtags.filter((hashtag) => !hashTagResults.includes(hashtag));
-            const promises: Promise<Record<string, any>>[] = [
-                this.service.createTweet({
-                    tweet,
-                    likes: 0,
-                    userId,
-                }),
-                this.hashTagService.createHashTag__bulk(
-                    invalidHashTags.map((hashtag) => ({
-                        hashtag,
-                        description: 'None',
-                        category: '',
-                        createdBy: userId,
-                    }))
-                ),
-            ];
-            const results = await Promise.all(promises);
-            const tweetData = results[0] as TweetAttributes;
+            const tweetData = await this.service.createTweet({
+                tweet,
+                likes: 0,
+                userId,
+            });
             const { tweetId, userId: tweetUserId, ...restTweetData } = tweetData;
-            const tweetHashtags = hashtags.map((hashtag) => ({ hashtag, tweetId }));
             const tweetUserTags = userTags.map((userTag) => ({ userName: userTag, tweetId }));
             const [tweetHashtagAssociations, tweetUserAssociations] = await Promise.all([
-                this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags),
+                this.handleTweetHashtagAsso(hashtags, tweetId, userId),
                 this.tweetUserService.associateTweetUser__bulk(tweetUserTags),
             ]);
             const tweetDataTokf = {
