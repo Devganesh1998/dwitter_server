@@ -1,5 +1,6 @@
+import { QueryTypes } from 'sequelize';
 import { TweetUserTagAttributes } from '../../pg-database/models/interfaces/TweetUserTag';
-import { models } from '../../pg-database/models';
+import { models, db } from '../../pg-database/models';
 import UserService from './user.service';
 
 export default class TweetUserService {
@@ -70,5 +71,18 @@ export default class TweetUserService {
     static async removeAssociateForTweetId(tweetId: string): Promise<number> {
         const rowsAffected = await models.TweetUserTag.destroy({ where: { tweetId } });
         return rowsAffected;
+    }
+
+    static async getUserTagsForTweetId(tweetId: string): Promise<string[]> {
+        const result = (await db.query(
+            'SELECT u."userName" from "tweet_usertags" as tu JOIN "users" as u ON u."userId" = tu."userId" WHERE tu."tweetId" = :tweetId',
+            {
+                replacements: {
+                    tweetId,
+                },
+                type: QueryTypes.SELECT,
+            }
+        )) as unknown as Array<{ userName: string }>;
+        return result.map(({ userName }) => userName);
     }
 }
