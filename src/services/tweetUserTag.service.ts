@@ -66,4 +66,9 @@ export default class TweetUserService {
         });
         return tweetUsers;
     }
+
+    static async removeAssociateForTweetId(tweetId: string): Promise<number> {
+        const rowsAffected = await models.TweetUserTag.destroy({ where: { tweetId } });
+        return rowsAffected;
+    }
 }
