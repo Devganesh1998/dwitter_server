@@ -37,7 +37,7 @@ class TweetController {
         this.elastic = elasticClient;
     }
 
-    private async handleTweetHashtagAsso(
+    private async createTweetHashtagAsso(
         hashtags: string[],
         tweetId: string,
         userId: string
@@ -61,6 +61,38 @@ class TweetController {
         return tweetHashtagAssociations;
     }
 
+    private async createTweetUsertagAsso(userTags: string[], tweetId: string) {
+        const tweetUserTags = userTags.map((userTag) => ({ userName: userTag, tweetId }));
+        const tweetUserAssociations = await this.tweetUserService.associateTweetUser__bulk(
+            tweetUserTags
+        );
+        return tweetUserAssociations;
+    }
+
+    private async updateHashTagAsso(
+        hashtags: string[],
+        tweetId: string,
+        userId: string
+    ): Promise<string[]> {
+        await this.tweetHashTagService.removeAssociateForTweetId(tweetId);
+        const tweetHashtagAssociations = await this.createTweetHashtagAsso(
+            hashtags,
+            tweetId,
+            userId
+        );
+        const updatedHashtags = tweetHashtagAssociations.map(
+            ({ hashtag }) => hashtag
+        ) as Array<string>;
+        return updatedHashtags;
+    }
+
+    private async updateUsertagAsso(userTags: string[], tweetId: string): Promise<string[]> {
+        await this.tweetUserService.removeAssociateForTweetId(tweetId);
+        const tweetUserAssociations = await this.createTweetUsertagAsso(userTags, tweetId);
+        const updatedUsertags = tweetUserAssociations.map(({ userName }) => userName as string);
+        return updatedUsertags;
+    }
+
     async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const {
@@ -79,10 +111,9 @@ class TweetController {
                 userId,
             });
             const { tweetId, userId: tweetUserId, ...restTweetData } = tweetData;
-            const tweetUserTags = userTags.map((userTag) => ({ userName: userTag, tweetId }));
             const [tweetHashtagAssociations, tweetUserAssociations] = await Promise.all([
-                this.handleTweetHashtagAsso(hashtags, tweetId, userId),
-                this.tweetUserService.associateTweetUser__bulk(tweetUserTags),
+                this.createTweetHashtagAsso(hashtags, tweetId, userId),
+                this.createTweetUsertagAsso(userTags, tweetId),
             ]);
             const tweetDataTokf = {
                 tweet: tweetData,
@@ -152,7 +183,11 @@ class TweetController {
     async updateOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const { tweetId } = req.params;
-            const { tweet: newTweet, hashtags } = req.body as {
+            const {
+                tweet: newTweet,
+                hashtags,
+                userTags,
+            } = req.body as {
                 tweet: string;
                 hashtags: string[];
                 userTags: string[];
@@ -204,21 +239,15 @@ class TweetController {
             } = await this.service.updateById(tweetId, { tweet: newTweet });
 
             if (rowsAffectedCount) {
-                let updatedHashtags: Array<string> | undefined;
-                if (hashtags) {
-                    await this.tweetHashTagService.removeAssociateForTweetId(tweetId);
-                    const tweetHashtagAssociations = await this.handleTweetHashtagAsso(
-                        hashtags,
-                        tweetId,
-                        userId
-                    );
-                    updatedHashtags = tweetHashtagAssociations.map(
-                        ({ hashtag }) => hashtag
-                    ) as Array<string>;
-                }
+                const [updatedHashtags, updatedUsertags] = await Promise.all([
+                    hashtags && this.updateHashTagAsso(hashtags, tweetId, userId),
+                    userTags && this.updateUsertagAsso(userTags, tweetId),
+                ]);
+
                 return res.send({
                     tweet: restTweet,
                     ...(updatedHashtags ? { hashtags: updatedHashtags } : {}),
+                    ...(updatedUsertags ? { userTags: updatedUsertags } : {}),
                 });
             }
             res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
