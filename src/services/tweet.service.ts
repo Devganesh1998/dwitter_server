@@ -43,7 +43,7 @@ export default class TweetService {
                 }
             ) as unknown as Array<{ hashtag: string }>,
             db.query(
-                'SELECT u."userName" from "tweet_usertags" as tu JOIN "tweets" as t ON t."tweetId" = tu."tweetId" JOIN "users" as u ON u."userId" = tu."userId" WHERE t."tweetId" = :tweetId',
+                'SELECT u."userName" from "tweet_usertags" as tu JOIN "users" as u ON u."userId" = tu."userId" WHERE tu."tweetId" = :tweetId',
                 {
                     replacements: {
                         tweetId,
