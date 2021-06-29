@@ -1,5 +1,6 @@
+import { QueryTypes } from 'sequelize';
 import { TweetHashTagAttributes } from '../../pg-database/models/interfaces/TweetHashTag';
-import { models } from '../../pg-database/models';
+import { models, db } from '../../pg-database/models';
 
 export default class TweetHashTagService {
     static async associateTweetHashtag({
@@ -36,5 +37,18 @@ export default class TweetHashTagService {
     static async removeAssociateForTweetId(tweetId: string): Promise<number> {
         const rowsAffected = await models.TweetHashTag.destroy({ where: { tweetId } });
         return rowsAffected;
+    }
+
+    static async getHashtagsForTweetId(tweetId: string): Promise<string[]> {
+        const result = (await db.query(
+            'SELECT th."hashtag" from "tweet_hashtags" as th JOIN "tweets" as t ON t."tweetId" = th."tweetId" WHERE t."tweetId" = :tweetId',
+            {
+                replacements: {
+                    tweetId,
+                },
+                type: QueryTypes.SELECT,
+            }
+        )) as unknown as Array<{ hashtag: string }>;
+        return result.map(({ hashtag }) => hashtag);
     }
 }
