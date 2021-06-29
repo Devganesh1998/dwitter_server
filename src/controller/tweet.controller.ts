@@ -9,6 +9,7 @@ import { TweetAttributes } from '../../pg-database/models/interfaces/Tweet';
 import TweetHashTagService from '../services/tweetHashtag.service';
 import TweetUserService from '../services/tweetUserTag.service';
 import KafkaProducer from '../utils/getKafkaProducer';
+import { TweetHashTagAttributes } from '../../pg-database/models/interfaces/TweetHashTag';
 
 class TweetController {
     private service: typeof TweetService;
@@ -37,6 +38,30 @@ class TweetController {
         this.elastic = elasticClient;
     }
 
+    private async handleTweetHashtagAsso(
+        hashtags: string[],
+        tweetId: string,
+        userId: string
+    ): Promise<TweetHashTagAttributes[]> {
+        const hashTagResults = await this.hashTagService.getValidHashtags(hashtags);
+        const invalidHashTags = hashtags.filter((hashtag) => !hashTagResults.includes(hashtag));
+        if (invalidHashTags.length) {
+            await this.hashTagService.createHashTag__bulk(
+                invalidHashTags.map((hashtag) => ({
+                    hashtag,
+                    description: 'None',
+                    category: '',
+                    createdBy: userId,
+                }))
+            );
+        }
+        const tweetHashtags = hashtags.map((hashtag) => ({ hashtag, tweetId }));
+        const tweetHashtagAssociations = await this.tweetHashTagService.associateTweetHashtag__bulk(
+            tweetHashtags
+        );
+        return tweetHashtagAssociations;
+    }
+
     async create(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const {
@@ -57,13 +82,13 @@ class TweetController {
                     likes: 0,
                     userId,
                 }),
-                ...invalidHashTags.map((hashtag) =>
-                    this.hashTagService.createHashTag({
+                this.hashTagService.createHashTag__bulk(
+                    invalidHashTags.map((hashtag) => ({
                         hashtag,
                         description: 'None',
                         category: '',
                         createdBy: userId,
-                    })
+                    }))
                 ),
             ];
             const results = await Promise.all(promises);
@@ -198,9 +223,11 @@ class TweetController {
                 let updatedHashtags: Array<string> | undefined;
                 if (hashtags) {
                     await this.tweetHashTagService.removeAssociateForTweetId(tweetId);
-                    const tweetHashtags = hashtags.map((hashtag) => ({ tweetId, hashtag }));
-                    const tweetHashtagAssociations =
-                        await this.tweetHashTagService.associateTweetHashtag__bulk(tweetHashtags);
+                    const tweetHashtagAssociations = await this.handleTweetHashtagAsso(
+                        hashtags,
+                        tweetId,
+                        userId
+                    );
                     updatedHashtags = tweetHashtagAssociations.map(
                         ({ hashtag }) => hashtag
                     ) as Array<string>;
