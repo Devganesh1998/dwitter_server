@@ -84,4 +84,9 @@ export default class TweetService {
             rowsAffectedCount,
         };
     }
+
+    static async deleteById(tweetId: string): Promise<boolean> {
+        const rowsAffectedCount = await models.Tweet.destroy({ where: { tweetId } });
+        return rowsAffectedCount > 0;
+    }
 }
