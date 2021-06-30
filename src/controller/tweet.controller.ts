@@ -126,7 +126,7 @@ class TweetController {
                 topic: 'tweet-create',
                 messages: [{ value: JSON.stringify(tweetDataTokf) }],
             });
-            res.send({
+            res.status(201).json({
                 tweet: { tweetId, ...restTweetData },
                 hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
                 userTags: tweetUserAssociations.map(
@@ -173,7 +173,9 @@ class TweetController {
             if (tweetData) {
                 return res.send({ ...(tweetData || {}) });
             }
-            res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
+            res.status(404).json({
+                error_msg: `Tweet was not found with given tweetId - ${tweetId}`,
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
@@ -254,7 +256,73 @@ class TweetController {
                     ...(updatedUsertags ? { userTags: updatedUsertags } : {}),
                 });
             }
-            res.status(404).json({ error_msg: 'Tweet was not found with given tweetId' });
+            res.status(404).json({
+                error_msg: `Tweet was not found with given tweetId - ${tweetId}`,
+            });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error_msg: 'Internal server error' });
+        }
+    }
+
+    async deleteOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+        try {
+            const { tweetId } = req.params;
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const { userId } = userData;
+            const {
+                statusCode,
+                body: {
+                    hits: {
+                        hits: [{ fields: { createdBy: [tweetOwner] = [] } = {} } = {}] = [],
+                    } = {},
+                } = {},
+            }: {
+                statusCode: number | null;
+                body:
+                    | {
+                          hits:
+                              | { hits: Array<{ fields: { createdBy: string[] } }> }
+                              | Record<string, any>;
+                      }
+                    | Record<string, any>;
+            } = await this.elastic.search({
+                index: 'tweets',
+                body: {
+                    query: {
+                        term: {
+                            tweetId,
+                        },
+                    },
+                    _source: false,
+                    fields: ['createdBy'],
+                },
+            });
+            if (statusCode !== 200) {
+                return res.status(500).json({ error_msg: 'Internal server error' });
+            }
+            if (tweetOwner !== userId) {
+                return res.status(403).json({
+                    error_msg: 'Only Tweet owner can delete their Tweets',
+                });
+            }
+            const [isTweetDeleted] = await Promise.all([
+                this.service.deleteById(tweetId),
+                this.tweetHashTagService.removeAssociateForTweetId(tweetId),
+                this.tweetUserService.removeAssociateForTweetId(tweetId),
+            ]);
+
+            if (isTweetDeleted) {
+                return res.send({
+                    msg: `Tweet with tweetId - ${tweetId} is successfully deleted.`,
+                });
+            }
+            res.status(404).json({
+                error_msg: `Tweet was not found with given tweetId - ${tweetId} or already deleted`,
+            });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
