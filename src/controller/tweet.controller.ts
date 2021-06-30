@@ -240,8 +240,12 @@ class TweetController {
 
             if (rowsAffectedCount) {
                 const [updatedHashtags, updatedUsertags] = await Promise.all([
-                    hashtags && this.updateHashTagAsso(hashtags, tweetId, userId),
-                    userTags && this.updateUsertagAsso(userTags, tweetId),
+                    hashtags
+                        ? this.updateHashTagAsso(hashtags, tweetId, userId)
+                        : this.tweetHashTagService.getHashtagsForTweetId(tweetId),
+                    userTags
+                        ? this.updateUsertagAsso(userTags, tweetId)
+                        : this.tweetUserService.getUserTagsForTweetId(tweetId),
                 ]);
 
                 return res.send({
