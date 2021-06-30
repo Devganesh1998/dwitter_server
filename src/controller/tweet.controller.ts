@@ -196,7 +196,7 @@ class TweetController {
             if (!userData) {
                 return res.sendStatus(401);
             }
-            const { userId } = userData;
+            const { userId, userName } = userData;
             const {
                 statusCode,
                 body: {
@@ -249,7 +249,7 @@ class TweetController {
                 ]);
 
                 return res.send({
-                    tweet: restTweet,
+                    tweet: { createdBy: userName, ...restTweet },
                     ...(updatedHashtags ? { hashtags: updatedHashtags } : {}),
                     ...(updatedUsertags ? { userTags: updatedUsertags } : {}),
                 });
