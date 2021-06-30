@@ -88,7 +88,24 @@ router
         verifyValidations,
         autoSessionRefresh,
         (...args: AuthenticatedControllerArgs) => TweetController.updateOne(...args)
+    )
+    .delete(
+        authCheckMiddleware,
+        [
+            param(
+                'tweetId',
+                'Please provide tweetId as param, it is required and should be in UUID format'
+            )
+                .exists({ checkFalsy: true })
+                .bail()
+                .isUUID()
+                .bail()
+                .trim()
+                .exists({ checkFalsy: true }),
+        ],
+        verifyValidations,
+        autoSessionRefresh,
+        (...args: AuthenticatedControllerArgs) => TweetController.deleteOne(...args)
     );
-//     .delete((...args: ControllerArgs) => TweetController.delete(...args));
 
 export default router;
