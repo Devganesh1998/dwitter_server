@@ -38,6 +38,19 @@ router.post(
     autoSessionRefresh,
     (...args: AuthenticatedControllerArgs) => TweetController.create(...args)
 );
+
+router.post(
+    '/getmytweets',
+    authCheckMiddleware,
+    [
+        body('size', 'size field should be in type number').optional().isInt().bail(),
+        body('from', 'from field should be in type number').optional().isInt().bail(),
+    ],
+    verifyValidations,
+    autoSessionRefresh,
+    (...args: AuthenticatedControllerArgs) => TweetController.getMyTweets(...args)
+);
+
 router
     .route('/:tweetId')
     .get(
