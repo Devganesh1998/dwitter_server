@@ -169,9 +169,57 @@ class TweetController {
     async findOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
         try {
             const { tweetId } = req.params;
-            const tweetData = await this.service.findOneById(tweetId);
-            if (tweetData) {
-                return res.send({ ...(tweetData || {}) });
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const { userName } = userData;
+            const {
+                statusCode,
+                body: {
+                    hits: { hits: [{ _source: tweetData = {} } = {}] = [] },
+                },
+            }: {
+                statusCode: number | null;
+                body: {
+                    hits: {
+                        hits: Array<{
+                            _source?:
+                                | {
+                                      tweet: string;
+                                      tweetId: string;
+                                      likes: number;
+                                      createdBy: string;
+                                      createdAt: string;
+                                      updatedAt: string;
+                                      hashtags: string[];
+                                      userTags: string[];
+                                  }
+                                | Record<string, string>;
+                        }>;
+                    };
+                };
+            } = await this.elastic.search({
+                index: 'tweets',
+                body: {
+                    query: {
+                        bool: {
+                            filter: [
+                                {
+                                    term: {
+                                        tweetId,
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                },
+            });
+            if (statusCode !== 200) {
+                throw new Error();
+            }
+            if (tweetData.tweetId) {
+                return res.send({ ...tweetData, createdBy: userName });
             }
             res.status(404).json({
                 error_msg: `Tweet was not found with given tweetId - ${tweetId}`,
@@ -344,18 +392,13 @@ class TweetController {
         const { userId, userName } = userData;
         const {
             statusCode,
-            body: {
-                hits: {
-                    hits: elasticHits,
-                    total: { value },
-                },
-            },
+            body: { hits: { hits: elasticHits = [], total: { value = 0 } = {} } = {} },
         }: {
             statusCode: number | null;
             body: {
-                hits: {
-                    hits: Array<{
-                        _source: {
+                hits?: {
+                    hits?: Array<{
+                        _source?: {
                             tweet: string;
                             tweetId: string;
                             likes: number;
@@ -366,7 +409,7 @@ class TweetController {
                             userTags: string[];
                         };
                     }>;
-                    total: { value: number };
+                    total?: { value?: number };
                 };
             };
         } = await this.elastic.search({
@@ -396,7 +439,7 @@ class TweetController {
         if (statusCode !== 200) {
             return res.status(500).json({ error_msg: 'Internal server error' });
         }
-        const myTweets = elasticHits.map(({ _source: { createdBy, ...restTweetData } }) => ({
+        const myTweets = elasticHits.map(({ _source: { createdBy, ...restTweetData } = {} }) => ({
             createdBy: userName,
             ...restTweetData,
         }));
