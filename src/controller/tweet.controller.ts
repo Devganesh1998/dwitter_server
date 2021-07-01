@@ -328,6 +328,74 @@ class TweetController {
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
+
+    async getMyTweets(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+        const { from, size }: { from: number; size: number } = req.body;
+        const userData = req.user;
+        if (!userData) {
+            return res.sendStatus(401);
+        }
+        const { userId, userName } = userData;
+        const {
+            statusCode,
+            body: {
+                hits: {
+                    hits: elasticHits,
+                    total: { value },
+                },
+            },
+        }: {
+            statusCode: number | null;
+            body: {
+                hits: {
+                    hits: Array<{
+                        _source: {
+                            tweet: string;
+                            tweetId: string;
+                            likes: number;
+                            createdBy: string;
+                            createdAt: string;
+                            updatedAt: string;
+                            hashtags: string[];
+                            userTags: string[];
+                        };
+                    }>;
+                    total: { value: number };
+                };
+            };
+        } = await this.elastic.search({
+            index: 'tweets',
+            body: {
+                query: {
+                    bool: {
+                        filter: {
+                            term: {
+                                createdBy: userId,
+                            },
+                        },
+                    },
+                },
+                sort: [
+                    {
+                        createdAt: {
+                            order: 'desc',
+                        },
+                    },
+                ],
+                from: from || 0,
+                size: size || 10,
+                track_total_hits: true,
+            },
+        });
+        if (statusCode !== 200) {
+            return res.status(500).json({ error_msg: 'Internal server error' });
+        }
+        const myTweets = elasticHits.map(({ _source: { createdBy, ...restTweetData } }) => ({
+            createdBy: userName,
+            ...restTweetData,
+        }));
+        res.send({ tweets: myTweets, totalCount: value });
+    }
 }
 
 export default new TweetController(
