@@ -219,8 +219,14 @@ class TweetController {
                 index: 'tweets',
                 body: {
                     query: {
-                        term: {
-                            tweetId,
+                        bool: {
+                            filter: [
+                                {
+                                    term: {
+                                        tweetId,
+                                    },
+                                },
+                            ],
                         },
                     },
                     _source: false,
