@@ -176,56 +176,41 @@ class TweetController {
             const { userName } = userData;
             const {
                 statusCode,
-                body: {
-                    hits: { hits: [{ _source: tweetData = {} } = {}] = [] },
-                },
+                body: { found, _source: tweetData = {} },
             }: {
                 statusCode: number | null;
                 body: {
-                    hits: {
-                        hits: Array<{
-                            _source?:
-                                | {
-                                      tweet: string;
-                                      tweetId: string;
-                                      likes: number;
-                                      createdBy: string;
-                                      createdAt: string;
-                                      updatedAt: string;
-                                      hashtags: string[];
-                                      userTags: string[];
-                                  }
-                                | Record<string, string>;
-                        }>;
-                    };
+                    found: boolean;
+                    _source?:
+                        | {
+                              tweet: string;
+                              tweetId: string;
+                              likes: number;
+                              createdBy: string;
+                              createdAt: string;
+                              updatedAt: string;
+                              hashtags: string[];
+                              userTags: string[];
+                          }
+                        | Record<string, string>;
                 };
-            } = await this.elastic.search({
-                index: 'tweets',
-                body: {
-                    query: {
-                        bool: {
-                            filter: [
-                                {
-                                    term: {
-                                        tweetId,
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
-            });
+            } = await this.elastic.get({ index: 'tweets', id: tweetId });
             if (statusCode !== 200) {
                 throw new Error();
             }
-            if (tweetData.tweetId) {
+            if (found) {
                 return res.send({ ...tweetData, createdBy: userName });
             }
             res.status(404).json({
                 error_msg: `Tweet was not found with given tweetId - ${tweetId}`,
             });
         } catch (error) {
-            console.error(error);
+            console.error(error, typeof error?.statusCode);
+            if (error?.statusCode === 404) {
+                return res.status(404).json({
+                    error_msg: 'Tweet was not found with given tweetId',
+                });
+            }
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
