@@ -10,6 +10,46 @@ import TweetUserService from '../services/tweetUserTag.service';
 import KafkaProducer from '../utils/getKafkaProducer';
 import { TweetHashTagAttributes } from '../../pg-database/models/interfaces/TweetHashTag';
 
+type ElasticTweetGetResponse = {
+    statusCode: number | null;
+    body: {
+        found: boolean;
+        _source?:
+            | {
+                  tweet: string;
+                  tweetId: string;
+                  likes: number;
+                  createdBy: string;
+                  createdAt: string;
+                  updatedAt: string;
+                  hashtags: string[];
+                  userTags: string[];
+              }
+            | Record<string, string>;
+    };
+};
+
+type ElasticTweetSearchResponse = {
+    statusCode: number | null;
+    body: {
+        hits?: {
+            hits?: Array<{
+                _source?: {
+                    tweet: string;
+                    tweetId: string;
+                    likes: number;
+                    createdBy: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    hashtags: string[];
+                    userTags: string[];
+                };
+            }>;
+            total?: { value?: number };
+        };
+    };
+};
+
 class TweetController {
     private service: typeof TweetService;
 
@@ -177,24 +217,7 @@ class TweetController {
             const {
                 statusCode,
                 body: { found, _source: tweetData = {} },
-            }: {
-                statusCode: number | null;
-                body: {
-                    found: boolean;
-                    _source?:
-                        | {
-                              tweet: string;
-                              tweetId: string;
-                              likes: number;
-                              createdBy: string;
-                              createdAt: string;
-                              updatedAt: string;
-                              hashtags: string[];
-                              userTags: string[];
-                          }
-                        | Record<string, string>;
-                };
-            } = await this.elastic.get({ index: 'tweets', id: tweetId });
+            }: ElasticTweetGetResponse = await this.elastic.get({ index: 'tweets', id: tweetId });
             if (statusCode !== 200) {
                 throw new Error();
             }
@@ -235,24 +258,7 @@ class TweetController {
             const {
                 statusCode,
                 body: { _source: { createdBy: tweetOwner } = {} },
-            }: {
-                statusCode: number | null;
-                body: {
-                    found: boolean;
-                    _source?:
-                        | {
-                              tweet: string;
-                              tweetId: string;
-                              likes: number;
-                              createdBy: string;
-                              createdAt: string;
-                              updatedAt: string;
-                              hashtags: string[];
-                              userTags: string[];
-                          }
-                        | Record<string, string>;
-                };
-            } = await this.elastic.get({ index: 'tweets', id: tweetId });
+            }: ElasticTweetGetResponse = await this.elastic.get({ index: 'tweets', id: tweetId });
             if (statusCode !== 200) {
                 throw new Error();
             }
@@ -307,24 +313,7 @@ class TweetController {
             const {
                 statusCode,
                 body: { _source: { createdBy: tweetOwner } = {} },
-            }: {
-                statusCode: number | null;
-                body: {
-                    found: boolean;
-                    _source?:
-                        | {
-                              tweet: string;
-                              tweetId: string;
-                              likes: number;
-                              createdBy: string;
-                              createdAt: string;
-                              updatedAt: string;
-                              hashtags: string[];
-                              userTags: string[];
-                          }
-                        | Record<string, string>;
-                };
-            } = await this.elastic.get({ index: 'tweets', id: tweetId });
+            }: ElasticTweetGetResponse = await this.elastic.get({ index: 'tweets', id: tweetId });
             if (statusCode !== 200) {
                 throw new Error();
             }
@@ -368,26 +357,7 @@ class TweetController {
         const {
             statusCode,
             body: { hits: { hits: elasticHits = [], total: { value = 0 } = {} } = {} },
-        }: {
-            statusCode: number | null;
-            body: {
-                hits?: {
-                    hits?: Array<{
-                        _source?: {
-                            tweet: string;
-                            tweetId: string;
-                            likes: number;
-                            createdBy: string;
-                            createdAt: string;
-                            updatedAt: string;
-                            hashtags: string[];
-                            userTags: string[];
-                        };
-                    }>;
-                    total?: { value?: number };
-                };
-            };
-        } = await this.elastic.search({
+        }: ElasticTweetSearchResponse = await this.elastic.search({
             index: 'tweets',
             body: {
                 query: {
