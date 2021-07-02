@@ -14,3 +14,17 @@ export interface CustomRedisClient extends RedisClient {
     delAsync: (arg1: [string, ...string[]]) => Promise<number>;
     geoaddAsync: (arg1: [string, ...Array<string | number>]) => Promise<number>;
 }
+
+export type TweetData = {
+    tweet: {
+        tweetId: string;
+        tweet: string;
+        likes: number;
+        userId: string;
+        createdAt: string;
+        updatedAt: string;
+        createdByUserName: string;
+    };
+    hashtags: string[];
+    userTags: string[];
+};
