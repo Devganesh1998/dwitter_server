@@ -22,6 +22,7 @@ type ElasticTweetGetResponse = {
                   createdBy: string;
                   createdAt: string;
                   updatedAt: string;
+                  createdByUserName: string;
                   hashtags: string[];
                   userTags: string[];
               }
@@ -41,6 +42,7 @@ type ElasticTweetSearchResponse = {
                     createdBy: string;
                     createdAt: string;
                     updatedAt: string;
+                    createdByUserName: string;
                     hashtags: string[];
                     userTags: string[];
                 };
@@ -167,7 +169,7 @@ class TweetController {
                 messages: [{ value: JSON.stringify(tweetDataTokf) }],
             });
             res.status(201).json({
-                tweet: { tweetId, ...restTweetData },
+                tweet: { tweetId, createdBy: userName, ...restTweetData },
                 hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
                 userTags: tweetUserAssociations.map(
                     ({ userName: tweetUserUserName }) => tweetUserUserName
@@ -213,7 +215,6 @@ class TweetController {
             if (!userData) {
                 return res.sendStatus(401);
             }
-            const { userName } = userData;
             const {
                 statusCode,
                 body: { found, _source: tweetData = {} },
@@ -222,7 +223,8 @@ class TweetController {
                 throw new Error();
             }
             if (found) {
-                return res.send({ ...tweetData, createdBy: userName });
+                const { createdBy, createdByUserName, ...filteredData } = tweetData;
+                return res.send({ createdBy: createdByUserName, ...filteredData });
             }
             res.status(404).json({
                 error_msg: `Tweet was not found with given tweetId - ${tweetId}`,
@@ -254,10 +256,10 @@ class TweetController {
             if (!userData) {
                 return res.sendStatus(401);
             }
-            const { userId, userName } = userData;
+            const { userId } = userData;
             const {
                 statusCode,
-                body: { _source: { createdBy: tweetOwner } = {} },
+                body: { _source: { createdBy: tweetOwner, createdByUserName } = {} },
             }: ElasticTweetGetResponse = await this.elastic.get({ index: 'tweets', id: tweetId });
             if (statusCode !== 200) {
                 throw new Error();
@@ -283,7 +285,7 @@ class TweetController {
                 ]);
 
                 return res.send({
-                    tweet: { createdBy: userName, ...restTweet },
+                    tweet: { createdBy: createdByUserName, ...restTweet },
                     ...(updatedHashtags ? { hashtags: updatedHashtags } : {}),
                     ...(updatedUsertags ? { userTags: updatedUsertags } : {}),
                 });
@@ -353,7 +355,7 @@ class TweetController {
         if (!userData) {
             return res.sendStatus(401);
         }
-        const { userId, userName } = userData;
+        const { userId } = userData;
         const {
             statusCode,
             body: { hits: { hits: elasticHits = [], total: { value = 0 } = {} } = {} },
@@ -384,10 +386,12 @@ class TweetController {
         if (statusCode !== 200) {
             return res.status(500).json({ error_msg: 'Internal server error' });
         }
-        const myTweets = elasticHits.map(({ _source: { createdBy, ...restTweetData } = {} }) => ({
-            createdBy: userName,
-            ...restTweetData,
-        }));
+        const myTweets = elasticHits.map(
+            ({ _source: { createdBy, createdByUserName, ...restTweetData } = {} }) => ({
+                createdBy: createdByUserName,
+                ...restTweetData,
+            })
+        );
         res.send({ tweets: myTweets, totalCount: value });
     }
 }
