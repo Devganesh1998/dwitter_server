@@ -144,7 +144,7 @@ class TweetController {
             if (!userData) {
                 return res.sendStatus(401);
             }
-            const { userId } = userData;
+            const { userId, userName } = userData;
             const tweetData = await this.service.createTweet({
                 tweet,
                 likes: 0,
@@ -156,7 +156,7 @@ class TweetController {
                 this.createTweetUsertagAsso(userTags, tweetId),
             ]);
             const tweetDataTokf = {
-                tweet: tweetData,
+                tweet: { ...tweetData, createdByUserName: userName },
                 hashtags: tweetHashtagAssociations.map(({ hashtag }) => hashtag),
                 userTags: tweetUserAssociations.map(
                     ({ userName: tweetUserUserName }) => tweetUserUserName
