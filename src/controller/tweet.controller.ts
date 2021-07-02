@@ -259,7 +259,14 @@ class TweetController {
             const { userId } = userData;
             const {
                 statusCode,
-                body: { _source: { createdBy: tweetOwner, createdByUserName } = {} },
+                body: {
+                    _source: {
+                        createdBy: tweetOwner,
+                        createdByUserName,
+                        hashtags: existingHashtags,
+                        userTags: existingUserTags,
+                    } = {},
+                },
             }: ElasticTweetGetResponse = await this.elastic.get({ index: 'tweets', id: tweetId });
             if (statusCode !== 200) {
                 throw new Error();
@@ -275,14 +282,22 @@ class TweetController {
             } = await this.service.updateById(tweetId, { tweet: newTweet });
 
             if (rowsAffectedCount) {
-                const [updatedHashtags, updatedUsertags] = await Promise.all([
-                    hashtags
-                        ? this.updateHashTagAsso(hashtags, tweetId, userId)
-                        : this.tweetHashTagService.getHashtagsForTweetId(tweetId),
-                    userTags
-                        ? this.updateUsertagAsso(userTags, tweetId)
-                        : this.tweetUserService.getUserTagsForTweetId(tweetId),
-                ]);
+                const [updatedHashtags = existingHashtags, updatedUsertags = existingUserTags] =
+                    await Promise.all([
+                        hashtags && this.updateHashTagAsso(hashtags, tweetId, userId),
+                        userTags && this.updateUsertagAsso(userTags, tweetId),
+                    ]);
+
+                const tweetDataTokf = {
+                    tweet: { createdBy: tweetOwner, createdByUserName, ...restTweet },
+                    hashtags: updatedHashtags,
+                    userTags: updatedUsertags,
+                };
+
+                await this.producer.send({
+                    topic: 'tweet-update',
+                    messages: [{ value: JSON.stringify(tweetDataTokf) }],
+                });
 
                 return res.send({
                     tweet: { createdBy: createdByUserName, ...restTweet },
