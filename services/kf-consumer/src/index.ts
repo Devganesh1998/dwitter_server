@@ -132,7 +132,15 @@ const initializeConsumption = async () => {
                         }
                         case 'tweet-create': {
                             const {
-                                tweet: { tweet, tweetId, likes, userId, createdAt, updatedAt },
+                                tweet: {
+                                    tweet,
+                                    tweetId,
+                                    likes,
+                                    userId,
+                                    createdAt,
+                                    updatedAt,
+                                    createdByUserName,
+                                },
                                 hashtags,
                                 userTags,
                             }: {
@@ -143,6 +151,7 @@ const initializeConsumption = async () => {
                                     userId: string;
                                     createdAt: string;
                                     updatedAt: string;
+                                    createdByUserName: string;
                                 };
                                 hashtags: string[];
                                 userTags: string[];
@@ -156,6 +165,7 @@ const initializeConsumption = async () => {
                                 updatedAt,
                                 hashtags,
                                 userTags,
+                                createdByUserName,
                             };
                             await elasticClient.index({
                                 index: 'tweets',
