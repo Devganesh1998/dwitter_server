@@ -289,7 +289,12 @@ class TweetController {
                     ]);
 
                 const tweetDataTokf = {
-                    tweet: { createdBy: tweetOwner, createdByUserName, ...restTweet },
+                    tweet: {
+                        createdBy: tweetOwner,
+                        userId: tweetOwner,
+                        createdByUserName,
+                        ...restTweet,
+                    },
                     hashtags: updatedHashtags,
                     userTags: updatedUsertags,
                 };
