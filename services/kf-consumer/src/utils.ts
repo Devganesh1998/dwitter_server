@@ -1,7 +1,8 @@
 import redis from 'redis';
 import { promisify } from 'util';
+import { Client } from '@elastic/elasticsearch';
 import { SESSION_EXPIRE_IN_S } from './config';
-import { CustomRedisClient } from '../types';
+import { CustomRedisClient, TweetData } from '../types';
 
 const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
 const REDIS_PORT: number = parseInt(process.env.REDIS_PORT || '', 10) || 6379;
@@ -147,4 +148,31 @@ export const refreshSessionExpire = async ({
     } catch (err) {
         console.error(err);
     }
+};
+
+export const indexTweetData = async (
+    elasticClient: Client,
+    parsedValue: TweetData
+): Promise<void> => {
+    const {
+        tweet: { tweet, tweetId, likes, userId, createdAt, updatedAt, createdByUserName },
+        hashtags,
+        userTags,
+    } = parsedValue;
+    const tweetData = {
+        tweet,
+        tweetId,
+        likes,
+        createdBy: userId,
+        createdAt,
+        updatedAt,
+        hashtags,
+        userTags,
+        createdByUserName,
+    };
+    await elasticClient.index({
+        index: 'tweets',
+        id: tweetId,
+        body: tweetData,
+    });
 };
