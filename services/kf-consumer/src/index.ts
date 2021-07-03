@@ -3,7 +3,13 @@ import dotenv from 'dotenv';
 import { Kafka, Consumer } from 'kafkajs';
 import geoIp from 'geoip-lite';
 import { Client } from '@elastic/elasticsearch';
-import { getRedisClient, manageSessionData, indexGeoInRedis, refreshSessionExpire } from './utils';
+import {
+    getRedisClient,
+    manageSessionData,
+    indexGeoInRedis,
+    refreshSessionExpire,
+    indexTweetData,
+} from './utils';
 import { SESSION_EXPIRE_IN_S } from './config';
 
 dotenv.config();
@@ -31,6 +37,7 @@ const initializeConsumption = async () => {
                 consumer.subscribe({ topic: 'user-register', fromBeginning: true }),
                 consumer.subscribe({ topic: 'session-refresh', fromBeginning: true }),
                 consumer.subscribe({ topic: 'tweet-create', fromBeginning: true }),
+                consumer.subscribe({ topic: 'tweet-update', fromBeginning: true }),
             ]);
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
@@ -131,47 +138,11 @@ const initializeConsumption = async () => {
                             break;
                         }
                         case 'tweet-create': {
-                            const {
-                                tweet: {
-                                    tweet,
-                                    tweetId,
-                                    likes,
-                                    userId,
-                                    createdAt,
-                                    updatedAt,
-                                    createdByUserName,
-                                },
-                                hashtags,
-                                userTags,
-                            }: {
-                                tweet: {
-                                    tweetId: string;
-                                    tweet: string;
-                                    likes: number;
-                                    userId: string;
-                                    createdAt: string;
-                                    updatedAt: string;
-                                    createdByUserName: string;
-                                };
-                                hashtags: string[];
-                                userTags: string[];
-                            } = parsedValue;
-                            const tweetData = {
-                                tweet,
-                                tweetId,
-                                likes,
-                                createdBy: userId,
-                                createdAt,
-                                updatedAt,
-                                hashtags,
-                                userTags,
-                                createdByUserName,
-                            };
-                            await elasticClient.index({
-                                index: 'tweets',
-                                id: tweetId,
-                                body: tweetData,
-                            });
+                            await indexTweetData(elasticClient, parsedValue);
+                            break;
+                        }
+                        case 'tweet-update': {
+                            await indexTweetData(elasticClient, parsedValue);
                             break;
                         }
                         default:
