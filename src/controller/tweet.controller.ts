@@ -351,6 +351,10 @@ class TweetController {
             ]);
 
             if (isTweetDeleted) {
+                await this.producer.send({
+                    topic: 'tweet-delete',
+                    messages: [{ value: JSON.stringify({ tweetId }) }],
+                });
                 return res.send({
                     msg: `Tweet with tweetId - ${tweetId} is successfully deleted.`,
                 });
