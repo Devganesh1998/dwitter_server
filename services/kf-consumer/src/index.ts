@@ -38,6 +38,7 @@ const initializeConsumption = async () => {
                 consumer.subscribe({ topic: 'session-refresh', fromBeginning: true }),
                 consumer.subscribe({ topic: 'tweet-create', fromBeginning: true }),
                 consumer.subscribe({ topic: 'tweet-update', fromBeginning: true }),
+                consumer.subscribe({ topic: 'tweet-delete', fromBeginning: true }),
             ]);
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
@@ -143,6 +144,14 @@ const initializeConsumption = async () => {
                         }
                         case 'tweet-update': {
                             await indexTweetData(elasticClient, parsedValue);
+                            break;
+                        }
+                        case 'tweet-delete': {
+                            const { tweetId }: { tweetId: string } = parsedValue;
+                            await elasticClient.delete({
+                                index: 'tweets',
+                                id: tweetId,
+                            });
                             break;
                         }
                         default:
