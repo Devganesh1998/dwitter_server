@@ -33,7 +33,7 @@ export default class HashTagService {
             description,
             createdBy,
         });
-        const results = cursor.toJSON as unknown as HashTagAttributes;
+        const results = cursor.toJSON() as unknown as HashTagAttributes;
         return results;
     }
 
