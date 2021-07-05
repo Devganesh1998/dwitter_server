@@ -33,6 +33,21 @@ class HashtagController {
             }
         } catch (error) {
             console.error(error);
+            const {
+                message,
+                errors: [
+                    { message: validationMessage = '', path = '', validatorKey = '' } = {},
+                ] = [],
+            } = error;
+            if (
+                message === 'Validation error' &&
+                path === 'hashtag' &&
+                validatorKey === 'not_unique'
+            ) {
+                return res.status(400).json({
+                    error_msg: `Given Hashtag is already present, ${validationMessage}`,
+                });
+            }
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
