@@ -1,12 +1,17 @@
 import { NextFunction, Response } from 'express';
+import { Producer } from 'kafkajs';
 import HashTagService from '../services/hashtag.service';
+import KafkaProducer from '../utils/getKafkaProducer';
 import { AuthenticatedRequest } from '../../types';
 
 class HashtagController {
     private hashTagService: typeof HashTagService;
 
+    private producer: Producer;
+
     constructor(hashTagService: typeof HashTagService) {
         this.hashTagService = hashTagService;
+        this.producer = KafkaProducer;
     }
 
     async createOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
@@ -28,9 +33,16 @@ class HashtagController {
                     createdBy: userId,
                     description,
                 });
-            if (resultHashTag) {
-                res.send({ ...restResult, hashtag: resultHashTag, createdBy: userName });
-            }
+            const hashtagDataTokf = {
+                hashtag: resultHashTag,
+                ...restResult,
+                createdByUserName: userName,
+            };
+            await this.producer.send({
+                topic: 'hashtag-create',
+                messages: [{ value: JSON.stringify(hashtagDataTokf) }],
+            });
+            res.send({ ...restResult, hashtag: resultHashTag, createdBy: userName });
         } catch (error) {
             console.error(error);
             const {
