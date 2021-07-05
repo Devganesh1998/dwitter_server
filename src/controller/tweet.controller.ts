@@ -374,49 +374,54 @@ class TweetController {
     }
 
     async getMyTweets(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
-        const { from, size }: { from: number; size: number } = req.body;
-        const userData = req.user;
-        if (!userData) {
-            return res.sendStatus(401);
-        }
-        const { userId } = userData;
-        const {
-            statusCode,
-            body: { hits: { hits: elasticHits = [], total: { value = 0 } = {} } = {} },
-        }: ElasticTweetSearchResponse = await this.elastic.search({
-            index: 'tweets',
-            body: {
-                query: {
-                    bool: {
-                        filter: {
-                            term: {
-                                createdBy: userId,
+        try {
+            const { from, size }: { from: number; size: number } = req.body;
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const { userId } = userData;
+            const {
+                statusCode,
+                body: { hits: { hits: elasticHits = [], total: { value = 0 } = {} } = {} },
+            }: ElasticTweetSearchResponse = await this.elastic.search({
+                index: 'tweets',
+                body: {
+                    query: {
+                        bool: {
+                            filter: {
+                                term: {
+                                    createdBy: userId,
+                                },
                             },
                         },
                     },
-                },
-                sort: [
-                    {
-                        createdAt: {
-                            order: 'desc',
+                    sort: [
+                        {
+                            createdAt: {
+                                order: 'desc',
+                            },
                         },
-                    },
-                ],
-                from: from || 0,
-                size: size || 10,
-                track_total_hits: true,
-            },
-        });
-        if (statusCode !== 200) {
-            return res.status(500).json({ error_msg: 'Internal server error' });
+                    ],
+                    from: from || 0,
+                    size: size || 10,
+                    track_total_hits: true,
+                },
+            });
+            if (statusCode !== 200) {
+                return res.status(500).json({ error_msg: 'Internal server error' });
+            }
+            const myTweets = elasticHits.map(
+                ({ _source: { createdBy, createdByUserName, ...restTweetData } = {} }) => ({
+                    createdBy: createdByUserName,
+                    ...restTweetData,
+                })
+            );
+            res.send({ tweets: myTweets, totalCount: value });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error_msg: 'Internal server error' });
         }
-        const myTweets = elasticHits.map(
-            ({ _source: { createdBy, createdByUserName, ...restTweetData } = {} }) => ({
-                createdBy: createdByUserName,
-                ...restTweetData,
-            })
-        );
-        res.send({ tweets: myTweets, totalCount: value });
     }
 }
 
