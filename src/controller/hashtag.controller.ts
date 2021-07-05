@@ -1,6 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { Producer } from 'kafkajs';
+import { Client } from '@elastic/elasticsearch';
 import HashTagService from '../services/hashtag.service';
+import elasticClient from '../utils/getElasticClient';
 import KafkaProducer from '../utils/getKafkaProducer';
 import { AuthenticatedRequest } from '../../types';
 
@@ -9,9 +11,12 @@ class HashtagController {
 
     private producer: Producer;
 
+    private elastic: Client;
+
     constructor(hashTagService: typeof HashTagService) {
         this.hashTagService = hashTagService;
         this.producer = KafkaProducer;
+        this.elastic = elasticClient;
     }
 
     async createOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
