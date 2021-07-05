@@ -39,6 +39,7 @@ const initializeConsumption = async () => {
                 consumer.subscribe({ topic: 'tweet-create', fromBeginning: true }),
                 consumer.subscribe({ topic: 'tweet-update', fromBeginning: true }),
                 consumer.subscribe({ topic: 'tweet-delete', fromBeginning: true }),
+                consumer.subscribe({ topic: 'hashtag-create', fromBeginning: true }),
             ]);
             await consumer.run({
                 eachMessage: async ({ topic, message }) => {
@@ -151,6 +152,42 @@ const initializeConsumption = async () => {
                             await elasticClient.delete({
                                 index: 'tweets',
                                 id: tweetId,
+                            });
+                            break;
+                        }
+                        case 'hashtag-create': {
+                            const {
+                                hashtag,
+                                createdBy,
+                                category,
+                                createdByUserName,
+                                description,
+                                followersCount,
+                                createdAt,
+                                updatedAt,
+                            }: {
+                                createdByUserName: string;
+                                description: string;
+                                category: string;
+                                followersCount: number;
+                                createdAt: string;
+                                updatedAt: string;
+                                createdBy: string;
+                                hashtag: string;
+                            } = parsedValue;
+                            await elasticClient.index({
+                                index: 'hashtags',
+                                id: hashtag,
+                                body: {
+                                    hashtag,
+                                    createdAt,
+                                    createdBy,
+                                    updatedAt,
+                                    category,
+                                    description,
+                                    followersCount,
+                                    createdByUserName,
+                                },
                             });
                             break;
                         }
