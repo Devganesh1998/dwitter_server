@@ -6,6 +6,25 @@ import elasticClient from '../utils/getElasticClient';
 import KafkaProducer from '../utils/getKafkaProducer';
 import { AuthenticatedRequest } from '../../types';
 
+type ElasticHashtagGetResponse = {
+    statusCode: number | null;
+    body: {
+        found: boolean;
+        _source?:
+            | {
+                  hashtag: string;
+                  category: string;
+                  followersCount: number;
+                  createdBy: string;
+                  description: string;
+                  createdAt: string;
+                  updatedAt: string;
+                  createdByUserName: string;
+              }
+            | Record<string, string>;
+    };
+};
+
 class HashtagController {
     private hashTagService: typeof HashTagService;
 
@@ -65,6 +84,35 @@ class HashtagController {
                     error_msg: `Given Hashtag is already present, ${validationMessage}`,
                 });
             }
+            res.status(500).json({ error_msg: 'Internal server error' });
+        }
+    }
+
+    async findOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+        try {
+            const { hashtag } = req.params;
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const {
+                statusCode,
+                body: { found, _source: { createdBy, createdByUserName, ...restHashtagData } = {} },
+            }: ElasticHashtagGetResponse = await this.elastic.get({
+                index: 'hashtags',
+                id: hashtag,
+            });
+            if (statusCode !== 200) {
+                throw new Error();
+            }
+            if (found) {
+                return res.send({ createdBy: createdByUserName, ...restHashtagData });
+            }
+            res.status(404).json({
+                error_msg: `No hashtag was found with the given hashtagId - ${hashtag}`,
+            });
+        } catch (error) {
+            console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
