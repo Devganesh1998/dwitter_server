@@ -121,6 +121,41 @@ class HashtagController {
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
+
+    async updateOne(req: AuthenticatedRequest, res: Response, _next: NextFunction) {
+        try {
+            const { hashtag } = req.params;
+            const { category, description }: { description: string; category: string } = req.body;
+            const userData = req.user;
+            if (!userData) {
+                return res.sendStatus(401);
+            }
+            const { userId } = userData;
+            const {
+                statusCode,
+                body: { found, _source: { createdBy } = {} },
+            }: ElasticHashtagGetResponse = await this.elastic.get({
+                index: 'hashtags',
+                id: hashtag,
+            });
+            if (statusCode !== 200) {
+                throw new Error();
+            }
+            if (!found) {
+                return res.status(404).json({
+                    error_msg: 'Hashtag was not found with given hashtagId',
+                });
+            }
+            if (userId !== createdBy) {
+                return res.status(403).json({
+                    error_msg: 'Only hashtag owners can update their hashtags.',
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error_msg: 'Internal server error' });
+        }
+    }
 }
 
 export default new HashtagController(HashTagService);
