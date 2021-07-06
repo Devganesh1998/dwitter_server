@@ -33,6 +33,19 @@ router.post(
 
 router
     .route('/:hashtag')
-    .get((...args: AuthenticatedControllerArgs) => HashtagController.findOne(...args));
+    .get(
+        authCheckMiddleware,
+        [
+            param('hashtag', 'Please provide hashtag in param, it is required')
+                .exists({ checkFalsy: true })
+                .bail()
+                .isString()
+                .trim()
+                .exists({ checkFalsy: true }),
+        ],
+        verifyValidations,
+        autoSessionRefresh,
+        (...args: AuthenticatedControllerArgs) => HashtagController.findOne(...args)
+    );
 
 export default router;
