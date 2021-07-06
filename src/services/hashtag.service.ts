@@ -47,4 +47,30 @@ export default class HashTagService {
         const results = cursor.map((doc) => doc.toJSON()) as unknown as HashTagAttributes[];
         return results;
     }
+
+    static async updateHashtag({
+        category,
+        description,
+        hashtag,
+    }: {
+        description: string;
+        category: string;
+        hashtag: string;
+    }): Promise<HashTagAttributes> {
+        const [, [cursor] = []] =
+            (await models.HashTag.update(
+                {
+                    category,
+                    description,
+                },
+                {
+                    validate: true,
+                    where: { hashtag },
+                    fields: ['category', 'description'],
+                    returning: true,
+                }
+            )) || [];
+        const hashtagData = cursor?.toJSON() as unknown as HashTagAttributes;
+        return hashtagData;
+    }
 }
