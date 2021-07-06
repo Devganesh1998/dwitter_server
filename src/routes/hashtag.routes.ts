@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import { AuthenticatedControllerArgs } from '../../types';
 import HashtagController from '../controller/hashtag.controller';
 import authCheckMiddleware from '../customMiddlewares/authCheckMiddleware';
@@ -30,5 +30,9 @@ router.post(
     autoSessionRefresh,
     (...args: AuthenticatedControllerArgs) => HashtagController.createOne(...args)
 );
+
+router
+    .route('/:hashtag')
+    .get((...args: AuthenticatedControllerArgs) => HashtagController.findOne(...args));
 
 export default router;
