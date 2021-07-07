@@ -46,6 +46,7 @@ router
         verifyValidations,
         autoSessionRefresh,
         (...args: AuthenticatedControllerArgs) => HashtagController.findOne(...args)
-    );
+    )
+    .put((...args: AuthenticatedControllerArgs) => HashtagController.updateOne(...args));
 
 export default router;
