@@ -133,7 +133,7 @@ class HashtagController {
             const { userId } = userData;
             const {
                 statusCode,
-                body: { found, _source: { createdBy } = {} },
+                body: { found, _source: { createdBy, createdByUserName } = {} },
             }: ElasticHashtagGetResponse = await this.elastic.get({
                 index: 'hashtags',
                 id: hashtag,
@@ -151,6 +151,13 @@ class HashtagController {
                     error_msg: 'Only hashtag owners can update their hashtags.',
                 });
             }
+            const { createdBy: filteredCreatedBy, ...updatedHashtagData } =
+                await this.hashTagService.updateHashtag({
+                    hashtag,
+                    category,
+                    description,
+                });
+            res.send({ ...updatedHashtagData, createdBy: createdByUserName });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error_msg: 'Internal server error' });
