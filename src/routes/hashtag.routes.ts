@@ -47,6 +47,29 @@ router
         autoSessionRefresh,
         (...args: AuthenticatedControllerArgs) => HashtagController.findOne(...args)
     )
-    .put((...args: AuthenticatedControllerArgs) => HashtagController.updateOne(...args));
+    .put(
+        authCheckMiddleware,
+        [
+            param('hashtag', 'Please provide hashtag in param, it is required')
+                .exists({ checkFalsy: true })
+                .bail()
+                .isString()
+                .trim()
+                .exists({ checkFalsy: true }),
+            body('category', 'category should be in type string')
+                .optional()
+                .isString()
+                .bail()
+                .trim(),
+            body('description', 'description should be in type string')
+                .optional()
+                .isString()
+                .bail()
+                .trim(),
+        ],
+        verifyValidations,
+        autoSessionRefresh,
+        (...args: AuthenticatedControllerArgs) => HashtagController.updateOne(...args)
+    );
 
 export default router;
