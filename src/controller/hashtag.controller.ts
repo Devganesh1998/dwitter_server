@@ -157,6 +157,15 @@ class HashtagController {
                     category,
                     description,
                 });
+            const hashtagDataTokf = {
+                ...updatedHashtagData,
+                createdBy,
+                createdByUserName,
+            };
+            await this.producer.send({
+                topic: 'hashtag-update',
+                messages: [{ value: JSON.stringify(hashtagDataTokf) }],
+            });
             res.send({ ...updatedHashtagData, createdBy: createdByUserName });
         } catch (error) {
             console.error(error);
