@@ -169,6 +169,11 @@ class HashtagController {
             res.send({ ...updatedHashtagData, createdBy: createdByUserName });
         } catch (error) {
             console.error(error);
+            if (error?.statusCode === 404) {
+                return res.status(404).json({
+                    error_msg: 'Hashtag was not found with given hashtagId',
+                });
+            }
             res.status(500).json({ error_msg: 'Internal server error' });
         }
     }
