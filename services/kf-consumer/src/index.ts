@@ -9,6 +9,7 @@ import {
     indexGeoInRedis,
     refreshSessionExpire,
     indexTweetData,
+    indexHashtagData,
 } from './utils';
 import { SESSION_EXPIRE_IN_S } from './config';
 
@@ -157,75 +158,11 @@ const initializeConsumption = async () => {
                             break;
                         }
                         case 'hashtag-create': {
-                            const {
-                                hashtag,
-                                createdBy,
-                                category,
-                                createdByUserName,
-                                description,
-                                followersCount,
-                                createdAt,
-                                updatedAt,
-                            }: {
-                                createdByUserName: string;
-                                description: string;
-                                category: string;
-                                followersCount: number;
-                                createdAt: string;
-                                updatedAt: string;
-                                createdBy: string;
-                                hashtag: string;
-                            } = parsedValue;
-                            await elasticClient.index({
-                                index: 'hashtags',
-                                id: hashtag,
-                                body: {
-                                    hashtag,
-                                    createdAt,
-                                    createdBy,
-                                    updatedAt,
-                                    category,
-                                    description,
-                                    followersCount,
-                                    createdByUserName,
-                                },
-                            });
+                            await indexHashtagData(elasticClient, parsedValue);
                             break;
                         }
                         case 'hashtag-update': {
-                            const {
-                                hashtag,
-                                createdBy,
-                                category,
-                                createdByUserName,
-                                description,
-                                followersCount,
-                                createdAt,
-                                updatedAt,
-                            }: {
-                                createdByUserName: string;
-                                description: string;
-                                category: string;
-                                followersCount: number;
-                                createdAt: string;
-                                updatedAt: string;
-                                createdBy: string;
-                                hashtag: string;
-                            } = parsedValue;
-                            await elasticClient.index({
-                                index: 'hashtags',
-                                id: hashtag,
-                                body: {
-                                    hashtag,
-                                    createdAt,
-                                    createdBy,
-                                    updatedAt,
-                                    category,
-                                    description,
-                                    followersCount,
-                                    createdByUserName,
-                                },
-                            });
+                            await indexHashtagData(elasticClient, parsedValue);
                             break;
                         }
                         default:
