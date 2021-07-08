@@ -28,3 +28,14 @@ export type TweetData = {
     hashtags: string[];
     userTags: string[];
 };
+
+export type HashtagData = {
+    createdByUserName: string;
+    description: string;
+    category: string;
+    followersCount: number;
+    createdAt: string;
+    updatedAt: string;
+    createdBy: string;
+    hashtag: string;
+};

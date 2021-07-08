@@ -2,7 +2,7 @@ import redis from 'redis';
 import { promisify } from 'util';
 import { Client } from '@elastic/elasticsearch';
 import { SESSION_EXPIRE_IN_S } from './config';
-import { CustomRedisClient, TweetData } from '../types';
+import { CustomRedisClient, TweetData, HashtagData } from '../types';
 
 const REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
 const REDIS_PORT: number = parseInt(process.env.REDIS_PORT || '', 10) || 6379;
@@ -174,5 +174,35 @@ export const indexTweetData = async (
         index: 'tweets',
         id: tweetId,
         body: tweetData,
+    });
+};
+
+export const indexHashtagData = async (
+    elasticClient: Client,
+    parsedValue: HashtagData
+): Promise<void> => {
+    const {
+        hashtag,
+        createdBy,
+        category,
+        createdByUserName,
+        description,
+        followersCount,
+        createdAt,
+        updatedAt,
+    } = parsedValue;
+    await elasticClient.index({
+        index: 'hashtags',
+        id: hashtag,
+        body: {
+            hashtag,
+            createdAt,
+            createdBy,
+            updatedAt,
+            category,
+            description,
+            followersCount,
+            createdByUserName,
+        },
     });
 };
