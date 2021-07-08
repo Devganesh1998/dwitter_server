@@ -66,7 +66,7 @@ class HashtagController {
                 topic: 'hashtag-create',
                 messages: [{ value: JSON.stringify(hashtagDataTokf) }],
             });
-            res.send({ ...restResult, hashtag: resultHashTag, createdBy: userName });
+            res.status(201).json({ ...restResult, hashtag: resultHashTag, createdBy: userName });
         } catch (error) {
             console.error(error);
             const {
